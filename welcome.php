@@ -17,7 +17,7 @@ if (!isset($_SESSION['user_email'])) {
     </style>
 </head>
 <body>
-    <h2>Welcome! I love... I loveeeeeee🎉</h2>
+    <h2>Welcome! I love... I loveeeeee🎉</h2>
     
     <div class="user-info">
         <?php if (isset($_SESSION['user_picture']) && $_SESSION['user_picture']): ?>
