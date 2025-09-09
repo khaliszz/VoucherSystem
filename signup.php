@@ -12,14 +12,14 @@ $error = '';
 $success = '';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $name = trim($_POST['name']);
+    $username = trim($_POST['username']);
     $email = trim($_POST['email']);
     $password = $_POST['password'];
     $confirm_password = $_POST['confirm_password'];
 
     // Validation
-    if (empty($name) || empty($email) || empty($password)) {
-        $error = "All fields are required.";
+    if (empty($username) || empty($email) || empty($password)) {
+        $error = "Username, email, and password are required.";
     } elseif ($password !== $confirm_password) {
         $error = "Passwords do not match.";
     } elseif (strlen($password) < 6) {
@@ -28,18 +28,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $error = "Please enter a valid email address.";
     } else {
         try {
-            // Check if email already exists
-            $stmt = $conn->prepare("SELECT id FROM users WHERE email = ?");
-            $stmt->execute([$email]);
+            // Check if email or username already exists
+            $stmt = $conn->prepare("SELECT user_id FROM users WHERE email = ? OR username = ?");
+            $stmt->execute([$email, $username]);
             if ($stmt->fetch()) {
-                $error = "Email already exists. Please use a different email or try logging in.";
+                $error = "Email or username already exists. Please use a different one or try logging in.";
             } else {
-                // Insert new user
-                $password_hash = password_hash($password, PASSWORD_BCRYPT);
-                $sql = "INSERT INTO users (name, email, password_hash, created_at, updated_at) VALUES (?, ?, ?, NOW(), NOW())";
+                // Insert new user (plain text password as per your request, but not recommended)
+                $sql = "INSERT INTO users (email, username, password) VALUES (?, ?, ?)";
                 $stmt = $conn->prepare($sql);
-                $stmt->execute([$name, $email, $password_hash]);
-                
+                $stmt->execute([
+                    $email,
+                    $username,
+                    $password
+                ]);
                 $success = "Signup successful! You can now login.";
             }
         } catch (PDOException $e) {
@@ -57,7 +59,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         .error { color: red; margin: 10px 0; padding: 10px; background: #ffe6e6; border: 1px solid #ffcccc; }
         .success { color: green; margin: 10px 0; padding: 10px; background: #e6ffe6; border: 1px solid #ccffcc; }
         body { font-family: Arial, sans-serif; max-width: 400px; margin: 50px auto; padding: 20px; }
-        input { width: 100%; padding: 8px; margin: 5px 0; border: 1px solid #ddd; border-radius: 4px; }
+        input, textarea { width: 100%; padding: 8px; margin: 5px 0; border: 1px solid #ddd; border-radius: 4px; }
         button { background: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; }
         button:hover { background: #0056b3; }
     </style>
@@ -74,7 +76,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <?php endif; ?>
     
     <form method="POST">
-        <input type="text" name="name" placeholder="Full Name" value="<?php echo htmlspecialchars($_POST['name'] ?? ''); ?>" required><br><br>
+        <input type="text" name="username" placeholder="Username" value="<?php echo htmlspecialchars($_POST['username'] ?? ''); ?>" required><br><br>
         <input type="email" name="email" placeholder="Email" value="<?php echo htmlspecialchars($_POST['email'] ?? ''); ?>" required><br><br>
         <input type="password" name="password" placeholder="Password" required><br><br>
         <input type="password" name="confirm_password" placeholder="Confirm Password" required><br><br>

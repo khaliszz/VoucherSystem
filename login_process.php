@@ -7,22 +7,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $password = $_POST['password'];
 
     try {
-        $sql = "SELECT * FROM users WHERE email = ? AND password_hash IS NOT NULL";
+        $sql = "SELECT * FROM users WHERE email = ? AND is_active = 1";
         $stmt = $conn->prepare($sql);
         $stmt->execute([$email]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        if ($user && password_verify($password, $user['password_hash'])) {
+        // Compare plain text password (not secure, but matches your schema)
+        if ($user && $password === $user['password']) {
             // ✅ Login success
-            $_SESSION['user_id'] = $user['id'];
+            $_SESSION['user_id'] = $user['user_id'];
             $_SESSION['user_email'] = $user['email'];
-            $_SESSION['user_name'] = $user['name'];
-            $_SESSION['user_picture'] = $user['picture'];
-            
-            // Update last login
-            $updateStmt = $conn->prepare("UPDATE users SET last_login = NOW() WHERE id = ?");
-            $updateStmt->execute([$user['id']]);
-            
+            $_SESSION['username'] = $user['username'];
+            $_SESSION['profile_image'] = $user['profile_image'];
+
+            // Optionally update last login if you add that column
+            // $updateStmt = $conn->prepare("UPDATE users SET last_login = NOW() WHERE user_id = ?");
+            // $updateStmt->execute([$user['user_id']]);
+
             header("Location: welcome.php");
             exit;
         } else {
