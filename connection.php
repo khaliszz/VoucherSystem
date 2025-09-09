@@ -1,8 +1,13 @@
 <?php
-$host = "capstoneproject.mysql.database.azure.com";
-$dbname = "";
-$username = "";  // ✅ just username, no @server
-$password = "";
+require_once __DIR__ . '/vendor/autoload.php';
+
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__); // or use project root if .env is there
+$dotenv->load();
+
+$host = $_ENV['DB_HOST'];
+$dbname = $_ENV['DB_NAME'];
+$username = $_ENV['DB_USER'];
+$password = $_ENV['DB_PASSWORD'];
 $sslcert = __DIR__ . "/DigiCertGlobalRootCA.crt.pem"; // use relative path
 
 $dsn = "mysql:host=$host;dbname=$dbname;port=3306;charset=utf8mb4";
