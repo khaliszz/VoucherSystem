@@ -2,6 +2,7 @@
     "require": {
         "google/apiclient": "2.17",
         "google/auth": "1.42",
-        "guzzlehttp/guzzle": "7.8"
+        "guzzlehttp/guzzle": "7.8",
+        "vlucas/phpdotenv": "^5.6"
     }
 }
