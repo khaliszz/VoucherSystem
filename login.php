@@ -1,128 +1,34 @@
 <?php
-// Start session management at the very top.
 session_start();
+include 'connection.php';
+include 'google-config.php';
 
-// --- CONFIGURATION ---
-$db_file = 'users.json';
-$message = ''; // To store feedback for the user.
-$last_action = 'login'; // To remember which form to show on error
-
-// --- UTILITY FUNCTIONS ---
-
-/**
- * Reads all users from the JSON flat-file database.
- * @return array An array of users.
- */
-function get_users($file) {
-    if (!file_exists($file)) file_put_contents($file, '[]');
-    return json_decode(file_get_contents($file), true) ?: [];
-}
-
-/**
- * Saves an array of users to the JSON flat-file database with locking.
- * @param string $file The path to the database file.
- * @param array $users The array of users to save.
- * @return bool True on success, false on failure.
- */
-function save_users($file, $users) {
-    return file_put_contents($file, json_encode($users, JSON_PRETTY_PRINT), LOCK_EX) !== false;
-}
-
-// --- LOGOUT LOGIC ---
-if (isset($_GET['action']) && $_GET['action'] === 'logout') {
-    session_unset();
-    session_destroy();
-    header('Location: index.php');
+// If user is already logged in, redirect to welcome.php
+if (isset($_SESSION['user_id']) || isset($_SESSION['user_email'])) {
+    header('Location: welcome.php');
     exit();
 }
 
-// --- POST REQUEST HANDLING (LOGIN & REGISTRATION) ---
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-
-    // --- REGISTRATION LOGIC ---
-    if (isset($_POST['register'])) {
-        $last_action = 'register';
-        $fullname = trim($_POST['fullname']);
-        $email = trim($_POST['email']);
-        $password = $_POST['password'];
-        $confirm_password = $_POST['confirm_password'];
-
-        if (empty($fullname) || empty($email) || empty($password) || empty($confirm_password)) {
-            $message = '<div class="message error">Please fill in all fields.</div>';
-        } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $message = '<div class="message error">Invalid email format.</div>';
-        } elseif ($password !== $confirm_password) {
-            $message = '<div class="message error">Passwords do not match.</div>';
-        } elseif (strlen($password) < 6) {
-            $message = '<div class="message error">Password must be at least 6 characters.</div>';
-        } else {
-            $users = get_users($db_file);
-            $email_exists = false;
-            foreach ($users as $user) {
-                if ($user['email'] === $email) {
-                    $email_exists = true;
-                    break;
-                }
-            }
-            if ($email_exists) {
-                $message = '<div class="message error">An account with this email already exists.</div>';
-            } else {
-                $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-                $new_user = [
-                    'id' => uniqid(),
-                    'fullname' => htmlspecialchars($fullname),
-                    'email' => $email,
-                    'password' => $hashed_password
-                ];
-                $users[] = $new_user;
-                if (save_users($db_file, $users)) {
-                    $message = '<div class="message success">Account created successfully! Please sign in.</div>';
-                    $last_action = 'login';
-                } else {
-                    $message = '<div class="message error">Error: Could not save user data. Check file permissions.</div>';
-                }
-            }
-        }
-    }
-
-    // --- LOGIN LOGIC ---
-    if (isset($_POST['login'])) {
-        $last_action = 'login';
-        $email = trim($_POST['email']);
-        $password = $_POST['password'];
-
-        if (empty($email) || empty($password)) {
-            $message = '<div class="message error">Email and password are required.</div>';
-        } else {
-            $users = get_users($db_file);
-            $user_found = null;
-            foreach ($users as $user) {
-                if ($user['email'] === $email) {
-                    $user_found = $user;
-                    break;
-                }
-            }
-            if ($user_found && password_verify($password, $user_found['password'])) {
-                $_SESSION['user_id'] = $user_found['id'];
-                
-                // Use 'fullname' if it exists, otherwise fall back to 'username'.
-                if (isset($user_found['fullname'])) {
-                    $_SESSION['user_display_name'] = $user_found['fullname'];
-                } elseif (isset($user_found['username'])) {
-                    $_SESSION['user_display_name'] = $user_found['username'];
-                }
-
-                header('Location: index.php');
-                exit();
-            } else {
-                $message = '<div class="message error">Invalid email or password.</div>';
-            }
-        }
-    }
+// Show messages from redirects
+$message = '';
+if (isset($_GET['error'])) {
+    $message = '<div class="message error">' . htmlspecialchars($_GET['error']) . '</div>';
+} elseif (isset($_GET['success'])) {
+    $message = '<div class="message success">' . htmlspecialchars($_GET['success']) . '</div>';
 }
 
+// Logout logic
+if (isset($_GET['action']) && $_GET['action'] === 'logout') {
+    session_unset();
+    session_destroy();
+    header('Location: login.php');
+    exit();
+}
+
+$googleLoginUrl = $client->createAuthUrl();
+
 // Check if user is logged in
-$is_logged_in = isset($_SESSION['user_id']);
+$is_logged_in = isset($_SESSION['user_id']) || isset($_SESSION['user_email']);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -416,19 +322,12 @@ $is_logged_in = isset($_SESSION['user_id']);
 <body>
 
     <?php if ($is_logged_in): ?>
-        <!-- ================== -->
-        <!-- DASHBOARD VIEW     -->
-        <!-- ================== -->
         <div class="auth-wrapper dashboard-view">
             <h1>Welcome Back!</h1>
-            <p>You are now logged in, <?php echo htmlspecialchars($_SESSION['user_display_name'] ?? 'User'); ?>.</p>
+            <p>You are now logged in, <?php echo htmlspecialchars($_SESSION['user_display_name'] ?? $_SESSION['username'] ?? $_SESSION['user_email'] ?? 'User'); ?>.</p>
             <a href="?action=logout" class="logout-btn">Logout</a>
         </div>
-
     <?php else: ?>
-        <!-- ================== -->
-        <!-- AUTHENTICATION VIEW -->
-        <!-- ================== -->
         <div class="auth-wrapper">
             <header class="auth-header">
                 <h1>Welcome</h1>
@@ -440,11 +339,11 @@ $is_logged_in = isset($_SESSION['user_id']);
                     <div class="tab" id="tab-signup">Sign Up</div>
                 </div>
 
-                <?php echo $message; // Display any feedback messages ?>
-                
+                <?php echo $message; ?>
+
                 <!-- Sign In Form -->
                 <div class="form-panel" id="panel-signin">
-                    <form action="index.php" method="POST">
+                    <form action="login_process.php" method="POST">
                         <div class="form-group">
                             <label for="login-email">Email Address</label>
                             <input type="email" id="login-email" name="email" required>
@@ -462,10 +361,10 @@ $is_logged_in = isset($_SESSION['user_id']);
 
                 <!-- Sign Up Form -->
                 <div class="form-panel" id="panel-signup">
-                    <form action="index.php" method="POST">
+                    <form action="signup.php" method="POST">
                         <div class="form-group">
-                            <label for="signup-fullname">Full Name</label>
-                            <input type="text" id="signup-fullname" name="fullname" required>
+                            <label for="signup-username">Username</label>
+                            <input type="text" id="signup-username" name="username" required>
                         </div>
                         <div class="form-group">
                             <label for="signup-email">Email Address</label>
@@ -475,31 +374,26 @@ $is_logged_in = isset($_SESSION['user_id']);
                             <label for="signup-password">Password</label>
                             <input type="password" id="signup-password" name="password" required>
                         </div>
-                         <div class="form-group">
+                        <div class="form-group">
                             <label for="signup-confirm-password">Confirm Password</label>
                             <input type="password" id="signup-confirm-password" name="confirm_password" required>
                         </div>
-                        <button type="submit" name="register" class="btn-submit">Create Account</button>
+                        <button type="submit" class="btn-submit">Create Account</button>
                     </form>
                 </div>
 
                 <div class="divider">or continue with</div>
                 <div class="social-login">
-                    <a href="#" class="social-btn">
+                    <a href="<?php echo htmlspecialchars($googleLoginUrl); ?>" class="social-btn">
                         <img src="https://www.vectorlogo.zone/logos/google/google-icon.svg" alt="Google"> Google
-                    </a>
-                    <a href="#" class="social-btn">
-                        <img src="https://www.vectorlogo.zone/logos/facebook/facebook-icon.svg" alt="Facebook"> Facebook
                     </a>
                 </div>
             </main>
         </div>
-
     <?php endif; ?>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // This part only runs if the login/signup forms are present
             const tabSignin = document.getElementById('tab-signin');
             if (tabSignin) {
                 const tabSignup = document.getElementById('tab-signup');
@@ -521,15 +415,11 @@ $is_logged_in = isset($_SESSION['user_id']);
                     }
                 }
 
+                // Default to Sign In tab
+                showPanel('<?php echo isset($_GET["show"]) && $_GET["show"] === "signup" ? "signup" : "signin"; ?>');
+
                 tabSignin.addEventListener('click', () => showPanel('signin'));
                 tabSignup.addEventListener('click', () => showPanel('signup'));
-                
-                const lastAction = "<?php echo $last_action; ?>";
-                if (lastAction === 'register') {
-                    showPanel('signup');
-                } else {
-                    showPanel('signin');
-                }
             }
         });
     </script>
