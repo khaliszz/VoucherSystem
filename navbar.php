@@ -9,6 +9,58 @@ $catStmt = $conn->prepare($catSql);
 $catStmt->execute();
 $categories = $catStmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
+<style>
+    .navbar-cart-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        background: var(--white-color);
+        border: 2px solid var(--border-color);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        position: relative;
+    }
+
+    .navbar-cart-btn:hover {
+        transform: scale(1.05);
+        border-color: #6a5af9;
+        box-shadow: 0 4px 12px rgba(106, 90, 249, 0.2);
+    }
+
+    .navbar-cart-btn .cart-icon {
+        width: 24px;
+        height: 24px;
+        fill: var(--text-color);
+        transition: fill 0.3s ease;
+    }
+
+    .navbar-cart-btn:hover .cart-icon {
+        fill: #6a5af9;
+    }
+
+    /* Cart badge for item count (optional) */
+    .cart-badge {
+        position: absolute;
+        top: -5px;
+        right: -5px;
+        background: #ff4757;
+        color: white;
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.7rem;
+        font-weight: 600;
+        font-family: 'Poppins', sans-serif;
+    }
+</style>
+
 <header>
     <nav>
         <a href="homepage.php">Home</a>
@@ -26,8 +78,19 @@ $categories = $catStmt->fetchAll(PDO::FETCH_ASSOC);
         </div>
     </nav>
 
-    <!-- Profile Button -->
-    <a href="welcome.php" class="profile-btn">
-        <img src="<?php echo $_SESSION['profile_image'] ?? 'default-avatar.png'; ?>" alt="Profile">
-    </a>
+    <div style="display:flex; align-items:center; gap:15px;">
+        <!-- Cart Button -->
+        <a href="cart.php" class="navbar-cart-btn" title="Shopping Cart">
+            <svg class="cart-icon" viewBox="0 0 24 24">
+                <path d="M7 18c-1.1 0-2 0.9-2 2s0.9 2 2 2 2-0.9 2-2-0.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-0.16 0.28-0.25 0.61-0.25 0.96 0 1.1 0.9 2 2 2h12v-2H7.42c-0.14 0-0.25-0.11-0.25-0.25l0.03-0.12L8.1 13h7.45c0.75 0 1.41-0.41 1.75-1.03L21.7 4H5.21l-0.94-2H1zm16 16c-1.1 0-2 0.9-2 2s0.9 2 2 2 2-0.9 2-2-0.9-2-2-2z"/>
+            </svg>
+            <!-- Optional: Add cart item count badge -->
+            <!-- <span class="cart-badge">3</span> -->
+        </a>
+
+        <!-- Profile Button -->
+        <a href="welcome.php" class="profile-btn">
+            <img src="<?php echo $_SESSION['profile_image'] ?? 'default-avatar.png'; ?>" alt="Profile" class="profile-img">
+        </a>
+    </div>
 </header>
