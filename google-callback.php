@@ -73,7 +73,7 @@ try {
     $_SESSION['username'] = $username;
     $_SESSION['profile_image'] = $profile_image;
 
-    header('Location: welcome.php');
+    header('Location: homepage.php');
     exit;
 
 } catch (Throwable $e) {
