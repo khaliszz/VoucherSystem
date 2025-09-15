@@ -10,6 +10,14 @@ if (!isset($_SESSION['user_id'])) {
 // Database connection
 require_once 'connection.php';
 
+// ✅ Fetch user points
+$userId = $_SESSION['user_id'];
+$userSql = "SELECT points FROM users WHERE user_id = ?";
+$userStmt = $conn->prepare($userSql);
+$userStmt->execute([$userId]);
+$user = $userStmt->fetch(PDO::FETCH_ASSOC);
+$userPoints = $user['points'] ?? 0; // Default to 0 if no points
+
 // ✅ Fetch top 5 vouchers based on total quantity redeemed
 $sql = "
     SELECT v.voucher_id, v.title, v.image, SUM(c.quantity) as total_quantity
@@ -28,6 +36,17 @@ $catSql = "SELECT category_id, name FROM category";
 $catStmt = $conn->prepare($catSql);
 $catStmt->execute();
 $categories = $catStmt->fetchAll(PDO::FETCH_ASSOC);
+
+// ✅ Handle search
+$searchResults = [];
+if (isset($_GET['search']) && !empty($_GET['search'])) {
+    $search = "%" . $_GET['search'] . "%";
+    $searchSql = "SELECT voucher_id, title, image FROM voucher WHERE title LIKE :search";
+    $searchStmt = $conn->prepare($searchSql);
+    $searchStmt->bindParam(':search', $search, PDO::PARAM_STR);
+    $searchStmt->execute();
+    $searchResults = $searchStmt->fetchAll(PDO::FETCH_ASSOC);
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -166,12 +185,14 @@ $categories = $catStmt->fetchAll(PDO::FETCH_ASSOC);
             font-size: 1.8rem;
             font-weight: 600;
             color: var(--text-color);
-            margin-bottom: 2rem;
+            margin: 2rem 0 1rem;
         }
 
+        /* Voucher Grid Style Update */
         .voucher-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            display: flex; /* Use flexbox */
+            flex-wrap: wrap; /* Allow items to wrap to the next line */
+            justify-content: flex-start; /* Align items to the start */
             gap: 25px;
             margin-top: 20px;
         }
@@ -183,6 +204,8 @@ $categories = $catStmt->fetchAll(PDO::FETCH_ASSOC);
             text-align: center;
             box-shadow: 0 10px 25px rgba(0,0,0,0.08);
             transition: transform 0.3s ease, box-shadow 0.3s ease;
+            width: calc(20% - 20px); /* 5 items per row, adjust gap accordingly */
+            margin-bottom:15px;
         }
 
         .voucher-card:hover {
@@ -197,13 +220,14 @@ $categories = $catStmt->fetchAll(PDO::FETCH_ASSOC);
             margin-bottom: 15px;
             object-fit: cover;
             border-radius: 12px;
-            transition: transform 0.3s ease, box-shadow 0.3s ease; /* Added */
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
         }
 
         /* Hover effect for image */
         .voucher-card img:hover {
-            transform: scale(1.05); /* Zoom in */
-            box-shadow: 0 8px 20px rgba(0,0,0,0.2); /* Shadow */
+            transform: scale(1.05);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
         }
 
         .voucher-card p {
@@ -241,33 +265,110 @@ $categories = $catStmt->fetchAll(PDO::FETCH_ASSOC);
             transform: translateY(-2px);
         }
 
+        /* Make image clickable to voucher details */
+        .image-link {
+            display: block;
+            text-decoration: none;
+        }
+
         /* Mobile */
         @media (max-width: 768px) {
             nav {
                 gap: 20px;
             }
             nav a { font-size: 0.9rem; }
-            .voucher-grid { grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); }
+            .voucher-grid {
+                justify-content: center; /* Center items on smaller screens */
+            }
+            .voucher-card {
+                width: calc(50% - 20px); /* Two items per row on smaller screens */
+            }
         }
 
         @media (max-width: 500px) {
-            .voucher-grid { grid-template-columns: 1fr; }
+           .voucher-grid {
+                justify-content: center; /* Center items on smaller screens */
+            }
+            .voucher-card {
+                width: 100%; /* One item per row on even smaller screens */
+            }
+        }
+
+        /* Style for User Points Display */
+        .user-points {
+            background: var(--white-color);
+            padding: 10px 20px;
+            border-radius: 8px;
+            margin: 15px 30px; /* Adjusted for better spacing */
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-color);
+            text-align: right; /* Align to the right */
+        }
+
+        /* Add style to lift main content */
+       main {
+            padding: 40px 30px;
+            margin-top: -30px; /* Adjust this value as needed */
         }
     </style>
 </head>
 <body>
     <?php include 'navbar.php'; ?>
 
+    <!-- User Points Display -->
+    <div class="user-points">
+        Your Points: <?php echo htmlspecialchars($userPoints); ?>
+    </div>
+
     <main>
         <h1>Home Page</h1>
-        <h2>Top Pick Voucher</h2>
 
+        <!-- 🔍 Search Bar -->
+        <form method="get" action="" style="margin: 20px 0; text-align:left;">
+    <input type="text" name="search" placeholder="Search voucher..."
+        value="<?php echo isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>"
+        style="padding:10px; width:280px; border-radius:8px; border:1px solid #ccc;">
+    <button type="submit"
+        style="padding:10px 18px; border:none; border-radius:8px;
+            background: var(--button-gradient); color:#fff; font-weight:600; cursor:pointer;">
+        Search
+    </button>
+</form>
+
+        <!-- Search Results Section -->
+        <?php if (isset($_GET['search']) && !empty($_GET['search'])): ?>
+            <h2>Search Results</h2>
+            <div class="voucher-grid">
+                <?php if (!empty($searchResults)): ?>
+                    <?php foreach ($searchResults as $voucher): ?>
+                        <div class="voucher-card">
+                            <a href="voucher_details.php?id=<?php echo $voucher['voucher_id']; ?>" class="image-link">
+                                <img src="<?php echo htmlspecialchars($voucher['image']); ?>"
+                                    alt="<?php echo htmlspecialchars($voucher['title']); ?>">
+                            </a>
+                            <p><?php echo htmlspecialchars($voucher['title']); ?></p>
+                            <button>REDEEM NOW</button>
+                            <button>ADD TO CART</button>
+                        </div>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <p>No vouchers match your search.</p>
+                <?php endif; ?>
+            </div>
+        <?php endif; ?>
+
+        <!-- Top Pick Voucher Section -->
+        <h2>Top Pick Voucher</h2>
         <div class="voucher-grid">
             <?php if (!empty($topVouchers)): ?>
                 <?php foreach ($topVouchers as $voucher): ?>
                     <div class="voucher-card">
-                        <img src="<?php echo htmlspecialchars($voucher['image']); ?>" 
-                             alt="<?php echo htmlspecialchars($voucher['title']); ?>">
+                        <a href="voucher_details.php?id=<?php echo $voucher['voucher_id']; ?>" class="image-link">
+                            <img src="<?php echo htmlspecialchars($voucher['image']); ?>"
+                                alt="<?php echo htmlspecialchars($voucher['title']); ?>">
+                        </a>
                         <p><?php echo htmlspecialchars($voucher['title']); ?></p>
                         <small>Total Redeemed: <?php echo $voucher['total_quantity']; ?></small>
                         <button>REDEEM NOW</button>
