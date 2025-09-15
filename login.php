@@ -5,7 +5,7 @@ include 'google-config.php';
 
 // If user is already logged in, redirect to welcome.php
 if (isset($_SESSION['user_id']) || isset($_SESSION['user_email'])) {
-    header('Location: welcome.php');
+    header('Location: homepage.php');
     exit();
 }
 
