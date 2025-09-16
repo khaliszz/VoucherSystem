@@ -190,9 +190,9 @@ if (isset($_GET['search']) && !empty($_GET['search'])) {
 
         /* Voucher Grid Style Update */
         .voucher-grid {
-            display: flex; /* Use flexbox */
-            flex-wrap: wrap; /* Allow items to wrap to the next line */
-            justify-content: flex-start; /* Align items to the start */
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-start;
             gap: 25px;
             margin-top: 20px;
         }
@@ -204,7 +204,7 @@ if (isset($_GET['search']) && !empty($_GET['search'])) {
             text-align: center;
             box-shadow: 0 10px 25px rgba(0,0,0,0.08);
             transition: transform 0.3s ease, box-shadow 0.3s ease;
-            width: calc(20% - 20px); /* 5 items per row, adjust gap accordingly */
+            width: calc(20% - 20px);
             margin-bottom:15px;
         }
 
@@ -224,7 +224,6 @@ if (isset($_GET['search']) && !empty($_GET['search'])) {
             cursor: pointer;
         }
 
-        /* Hover effect for image */
         .voucher-card img:hover {
             transform: scale(1.05);
             box-shadow: 0 8px 20px rgba(0,0,0,0.2);
@@ -244,9 +243,10 @@ if (isset($_GET['search']) && !empty($_GET['search'])) {
             margin-bottom: 20px;
         }
 
-        .voucher-card button {
+        .voucher-card a.btn {
+            display:inline-block;
             background: var(--button-gradient);
-            border: none;
+            border:none;
             padding: 12px 20px;
             margin: 5px;
             border-radius: 8px;
@@ -255,11 +255,12 @@ if (isset($_GET['search']) && !empty($_GET['search'])) {
             font-size: 0.9rem;
             font-weight: 600;
             font-family: 'Poppins', sans-serif;
+            text-decoration:none;
             transition: all 0.3s ease;
             min-width: 110px;
         }
 
-        .voucher-card button:hover {
+        .voucher-card a.btn:hover {
             background: var(--button-hover-gradient);
             box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
             transform: translateY(-2px);
@@ -273,25 +274,15 @@ if (isset($_GET['search']) && !empty($_GET['search'])) {
 
         /* Mobile */
         @media (max-width: 768px) {
-            nav {
-                gap: 20px;
-            }
+            nav { gap: 20px; }
             nav a { font-size: 0.9rem; }
-            .voucher-grid {
-                justify-content: center; /* Center items on smaller screens */
-            }
-            .voucher-card {
-                width: calc(50% - 20px); /* Two items per row on smaller screens */
-            }
+            .voucher-grid { justify-content: center; }
+            .voucher-card { width: calc(50% - 20px); }
         }
 
         @media (max-width: 500px) {
-           .voucher-grid {
-                justify-content: center; /* Center items on smaller screens */
-            }
-            .voucher-card {
-                width: 100%; /* One item per row on even smaller screens */
-            }
+           .voucher-grid { justify-content: center; }
+           .voucher-card { width: 100%; }
         }
 
         /* Style for User Points Display */
@@ -299,23 +290,40 @@ if (isset($_GET['search']) && !empty($_GET['search'])) {
             background: var(--white-color);
             padding: 10px 20px;
             border-radius: 8px;
-            margin: 15px 30px; /* Adjusted for better spacing */
+            margin: 15px 30px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
             font-size: 1rem;
             font-weight: 600;
             color: var(--text-color);
-            text-align: right; /* Align to the right */
+            text-align: right;
         }
 
-        /* Add style to lift main content */
        main {
             padding: 40px 30px;
-            margin-top: -30px; /* Adjust this value as needed */
+            margin-top: -30px;
         }
     </style>
 </head>
 <body>
     <?php include 'navbar.php'; ?>
+
+    <?php if (isset($_SESSION['success_message'])): ?>
+    <div style="
+        background:#d4edda;
+        color:#155724;
+        border:1px solid #c3e6cb;
+        padding:12px 20px;
+        margin:15px 30px;
+        border-radius:8px;
+        font-weight:600;
+        position:relative;
+    ">
+        <?= htmlspecialchars($_SESSION['success_message']); ?>
+        <span onclick="this.parentElement.style.display='none'" 
+              style="position:absolute;top:8px;right:12px;cursor:pointer;font-weight:bold;">&times;</span>
+    </div>
+    <?php unset($_SESSION['success_message']); ?>
+<?php endif; ?>
 
     <!-- User Points Display -->
     <div class="user-points">
@@ -327,15 +335,15 @@ if (isset($_GET['search']) && !empty($_GET['search'])) {
 
         <!-- 🔍 Search Bar -->
         <form method="get" action="" style="margin: 20px 0; text-align:left;">
-    <input type="text" name="search" placeholder="Search voucher..."
-        value="<?php echo isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>"
-        style="padding:10px; width:280px; border-radius:8px; border:1px solid #ccc;">
-    <button type="submit"
-        style="padding:10px 18px; border:none; border-radius:8px;
-            background: var(--button-gradient); color:#fff; font-weight:600; cursor:pointer;">
-        Search
-    </button>
-</form>
+            <input type="text" name="search" placeholder="Search voucher..."
+                value="<?php echo isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>"
+                style="padding:10px; width:280px; border-radius:8px; border:1px solid #ccc;">
+            <button type="submit"
+                style="padding:10px 18px; border:none; border-radius:8px;
+                    background: var(--button-gradient); color:#fff; font-weight:600; cursor:pointer;">
+                Search
+            </button>
+        </form>
 
         <!-- Search Results Section -->
         <?php if (isset($_GET['search']) && !empty($_GET['search'])): ?>
@@ -349,8 +357,8 @@ if (isset($_GET['search']) && !empty($_GET['search'])) {
                                     alt="<?php echo htmlspecialchars($voucher['title']); ?>">
                             </a>
                             <p><?php echo htmlspecialchars($voucher['title']); ?></p>
-                            <button>REDEEM NOW</button>
-                            <button>ADD TO CART</button>
+                            <a href="redeem.php?id=<?php echo $voucher['voucher_id']; ?>" class="btn">REDEEM NOW</a>
+                            <a href="cart.php?action=add&id=<?= $voucher['voucher_id']; ?>" class="btn">ADD TO CART</a>
                         </div>
                     <?php endforeach; ?>
                 <?php else: ?>
@@ -371,8 +379,8 @@ if (isset($_GET['search']) && !empty($_GET['search'])) {
                         </a>
                         <p><?php echo htmlspecialchars($voucher['title']); ?></p>
                         <small>Total Redeemed: <?php echo $voucher['total_quantity']; ?></small>
-                        <button>REDEEM NOW</button>
-                        <button>ADD TO CART</button>
+                        <a href="redeem.php?id=<?php echo $voucher['voucher_id']; ?>" class="btn">REDEEM NOW</a>
+                        <a href="cart.php?action=add&id=<?= $voucher['voucher_id']; ?>" class="btn">ADD TO CART</a>
                     </div>
                 <?php endforeach; ?>
             <?php else: ?>
