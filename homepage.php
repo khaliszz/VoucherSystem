@@ -10,6 +10,7 @@ if (!isset($_SESSION['user_id'])) {
 // Database connection
 require_once 'connection.php';
 
+
 // ✅ Fetch user points
 $userId = $_SESSION['user_id'];
 $userSql = "SELECT points FROM users WHERE user_id = ?";
@@ -31,11 +32,40 @@ $stmt = $conn->prepare($sql);
 $stmt->execute();
 $topVouchers = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// ✅ Fetch categories for dropdown
+// ✅ Fetch categories
 $catSql = "SELECT category_id, name FROM category";
 $catStmt = $conn->prepare($catSql);
 $catStmt->execute();
 $categories = $catStmt->fetchAll(PDO::FETCH_ASSOC);
+
+// Create mapping of lowercase name → ID
+$categoryMap = [];
+foreach ($categories as $cat) {
+    $categoryMap[strtolower($cat['name'])] = $cat['category_id'];
+}
+
+// ✅ Handle category filter
+$categoryResults = null; // <-- set to null by default (no category selected)
+
+if (isset($_GET['category']) && !empty($_GET['category'])) {
+    $catKey = strtolower($_GET['category']);
+    if (isset($categoryMap[$catKey])) {
+        $selectedCategoryId = $categoryMap[$catKey];
+
+        $voucherSql = "
+            SELECT voucher_id, title, image, points, description
+            FROM voucher
+            WHERE category_id = ?
+            ORDER BY voucher_id DESC
+        ";
+        $voucherStmt = $conn->prepare($voucherSql);
+        $voucherStmt->execute([$selectedCategoryId]);
+        $categoryResults = $voucherStmt->fetchAll(PDO::FETCH_ASSOC);
+    } else {
+        $categoryResults = []; // no valid category found
+    }
+}
+
 
 // ✅ Handle search
 $searchResults = [];
@@ -47,6 +77,21 @@ if (isset($_GET['search']) && !empty($_GET['search'])) {
     $searchStmt->execute();
     $searchResults = $searchStmt->fetchAll(PDO::FETCH_ASSOC);
 }
+
+// ✅ Fetch promotions
+$promoSql = "SELECT promote_id, title, image, descriptions FROM promotion";
+$promoStmt = $conn->prepare($promoSql);
+$promoStmt->execute();
+$promotions = $promoStmt->fetchAll(PDO::FETCH_ASSOC);
+
+
+// ✅ Fetch cart count
+$cartCount = 0;
+$cartSql = "SELECT SUM(quantity) as total FROM cart_items WHERE user_id = ?";
+$cartStmt = $conn->prepare($cartSql);
+$cartStmt->execute([$userId]);
+$cartRow = $cartStmt->fetch(PDO::FETCH_ASSOC);
+$cartCount = $cartRow['total'] ?? 0;
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -106,6 +151,23 @@ if (isset($_GET['search']) && !empty($_GET['search'])) {
 
         nav a:hover {
             color: #6a5af9;
+        }
+
+        /* ✅ Cart badge */
+        .cart-btn {
+            position: relative;
+            display: inline-block;
+        }
+        .cart-badge {
+            position: absolute;
+            top: -6px;
+            right: -10px;
+            background: red;
+            color: #fff;
+            font-size: 12px;
+            padding: 2px 6px;
+            border-radius: 50%;
+            font-weight: bold;
         }
 
         /* Dropdown */
@@ -188,11 +250,77 @@ if (isset($_GET['search']) && !empty($_GET['search'])) {
             margin: 2rem 0 1rem;
         }
 
+
+        /* Promotion Slider */
+        .promo-slider {
+            width: 1000px;
+            height: 250px;
+            margin: 30px auto;
+            position: relative;
+            overflow: hidden;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            background: #fff;
+        }
+
+        .slides {
+            display: flex;
+            transition: transform 0.6s ease-in-out;
+            width: 100%;
+            height: 100%;
+        }
+
+        .slide {
+            min-width: 100%;
+            height: 100%;
+            box-sizing: border-box;
+            position: relative;
+        }
+
+        .slide img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;             /* crop while filling container */
+            object-position: center center; /* ✅ center horizontally + vertically */
+            border-radius: 12px;
+        }
+
+
+        /* Arrows */
+        .promo-slider .prev,
+        .promo-slider .next {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0,0,0,0.5);
+            color: #fff;
+            border: none;
+            padding: 10px 15px;
+            cursor: pointer;
+            border-radius: 50%;
+            font-size: 18px;
+            transition: background 0.3s;
+            z-index: 10;
+        }
+
+        .promo-slider .prev:hover,
+        .promo-slider .next:hover {
+            background: rgba(0,0,0,0.8);
+        }
+
+        .promo-slider .prev {
+            left: 15px;
+        }
+
+        .promo-slider .next {
+            right: 15px;
+        }
+
         /* Voucher Grid Style Update */
         .voucher-grid {
-            display: flex; /* Use flexbox */
-            flex-wrap: wrap; /* Allow items to wrap to the next line */
-            justify-content: flex-start; /* Align items to the start */
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-start;
             gap: 25px;
             margin-top: 20px;
         }
@@ -204,7 +332,7 @@ if (isset($_GET['search']) && !empty($_GET['search'])) {
             text-align: center;
             box-shadow: 0 10px 25px rgba(0,0,0,0.08);
             transition: transform 0.3s ease, box-shadow 0.3s ease;
-            width: calc(20% - 20px); /* 5 items per row, adjust gap accordingly */
+            width: calc(20% - 20px);
             margin-bottom:15px;
         }
 
@@ -224,7 +352,6 @@ if (isset($_GET['search']) && !empty($_GET['search'])) {
             cursor: pointer;
         }
 
-        /* Hover effect for image */
         .voucher-card img:hover {
             transform: scale(1.05);
             box-shadow: 0 8px 20px rgba(0,0,0,0.2);
@@ -244,9 +371,10 @@ if (isset($_GET['search']) && !empty($_GET['search'])) {
             margin-bottom: 20px;
         }
 
-        .voucher-card button {
+        .voucher-card a.btn {
+            display:inline-block;
             background: var(--button-gradient);
-            border: none;
+            border:none;
             padding: 12px 20px;
             margin: 5px;
             border-radius: 8px;
@@ -255,11 +383,12 @@ if (isset($_GET['search']) && !empty($_GET['search'])) {
             font-size: 0.9rem;
             font-weight: 600;
             font-family: 'Poppins', sans-serif;
+            text-decoration:none;
             transition: all 0.3s ease;
             min-width: 110px;
         }
 
-        .voucher-card button:hover {
+        .voucher-card a.btn:hover {
             background: var(--button-hover-gradient);
             box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
             transform: translateY(-2px);
@@ -273,25 +402,15 @@ if (isset($_GET['search']) && !empty($_GET['search'])) {
 
         /* Mobile */
         @media (max-width: 768px) {
-            nav {
-                gap: 20px;
-            }
+            nav { gap: 20px; }
             nav a { font-size: 0.9rem; }
-            .voucher-grid {
-                justify-content: center; /* Center items on smaller screens */
-            }
-            .voucher-card {
-                width: calc(50% - 20px); /* Two items per row on smaller screens */
-            }
+            .voucher-grid { justify-content: center; }
+            .voucher-card { width: calc(50% - 20px); }
         }
 
         @media (max-width: 500px) {
-           .voucher-grid {
-                justify-content: center; /* Center items on smaller screens */
-            }
-            .voucher-card {
-                width: 100%; /* One item per row on even smaller screens */
-            }
+           .voucher-grid { justify-content: center; }
+           .voucher-card { width: 100%; }
         }
 
         /* Style for User Points Display */
@@ -299,43 +418,108 @@ if (isset($_GET['search']) && !empty($_GET['search'])) {
             background: var(--white-color);
             padding: 10px 20px;
             border-radius: 8px;
-            margin: 15px 30px; /* Adjusted for better spacing */
+            margin: 15px 30px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
             font-size: 1rem;
             font-weight: 600;
             color: var(--text-color);
-            text-align: right; /* Align to the right */
+            text-align: right;
         }
 
-        /* Add style to lift main content */
        main {
             padding: 40px 30px;
-            margin-top: -30px; /* Adjust this value as needed */
+            margin-top: -30px;
         }
     </style>
 </head>
 <body>
     <?php include 'navbar.php'; ?>
 
+    <!-- ✅ Cart badge inside navbar.php -->
+    <script>
+        // Optional: JS could go here if you want AJAX update later
+    </script>
+
+    <?php if (isset($_SESSION['success_message'])): ?>
+    <div style="
+        background:#d4edda;
+        color:#155724;
+        border:1px solid #c3e6cb;
+        padding:12px 20px;
+        margin:15px 30px;
+        border-radius:8px;
+        font-weight:600;
+        position:relative;
+    ">
+        <?= htmlspecialchars($_SESSION['success_message']); ?>
+        <span onclick="this.parentElement.style.display='none'" 
+              style="position:absolute;top:8px;right:12px;cursor:pointer;font-weight:bold;">&times;</span>
+    </div>
+    <?php unset($_SESSION['success_message']); ?>
+<?php endif; ?>
+
     <!-- User Points Display -->
     <div class="user-points">
         Your Points: <?php echo htmlspecialchars($userPoints); ?>
     </div>
 
+    <!-- Promotion Slider -->
+    <?php if (!empty($promotions)): ?>
+    <div class="promo-slider">
+        <div class="slides">
+            <?php foreach ($promotions as $promo): ?>
+                <div class="slide">
+                    <img src="<?php echo htmlspecialchars($promo['image']); ?>" 
+                        alt="<?php echo htmlspecialchars($promo['title']); ?>">
+                </div>
+            <?php endforeach; ?>
+        </div>
+
+        <!-- Navigation Arrows -->
+        <button class="prev">&#10094;</button>
+        <button class="next">&#10095;</button>
+    </div>
+    <?php endif; ?>
+
     <main>
         <h1>Home Page</h1>
 
+        <!-- Category Buttons -->
+        <form method="get" action="" style="margin: 20px 0; text-align:left;">
+            <button type="submit" name="category" value="fashion"
+                style="padding:10px 15px; margin:5px; border:none; border-radius:20px;
+                    background: var(--button-gradient); color:#fff; font-weight:600; cursor:pointer;">
+                Fashion
+            </button>
+            <button type="submit" name="category" value="food and beverage"
+                style="padding:10px 15px; margin:5px; border:none; border-radius:20px;
+                    background: var(--button-gradient); color:#fff; font-weight:600; cursor:pointer;">
+                Food & Beverage
+            </button>
+            <button type="submit" name="category" value="travel"
+                style="padding:10px 15px; margin:5px; border:none; border-radius:20px;
+                    background: var(--button-gradient); color:#fff; font-weight:600; cursor:pointer;">
+                Travel
+            </button>
+            <button type="submit" name="category" value="sports"
+                style="padding:10px 15px; margin:5px; border:none; border-radius:20px;
+                    background: var(--button-gradient); color:#fff; font-weight:600; cursor:pointer;">
+                Sports
+            </button>
+        </form>
+
+
         <!-- 🔍 Search Bar -->
         <form method="get" action="" style="margin: 20px 0; text-align:left;">
-    <input type="text" name="search" placeholder="Search voucher..."
-        value="<?php echo isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>"
-        style="padding:10px; width:280px; border-radius:8px; border:1px solid #ccc;">
-    <button type="submit"
-        style="padding:10px 18px; border:none; border-radius:8px;
-            background: var(--button-gradient); color:#fff; font-weight:600; cursor:pointer;">
-        Search
-    </button>
-</form>
+            <input type="text" name="search" placeholder="Search voucher..."
+                value="<?php echo isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>"
+                style="padding:10px; width:280px; border-radius:8px; border:1px solid #ccc;">
+            <button type="submit"
+                style="padding:10px 18px; border:none; border-radius:8px;
+                    background: var(--button-gradient); color:#fff; font-weight:600; cursor:pointer;">
+                Search
+            </button>
+        </form>
 
         <!-- Search Results Section -->
         <?php if (isset($_GET['search']) && !empty($_GET['search'])): ?>
@@ -349,12 +533,35 @@ if (isset($_GET['search']) && !empty($_GET['search'])) {
                                     alt="<?php echo htmlspecialchars($voucher['title']); ?>">
                             </a>
                             <p><?php echo htmlspecialchars($voucher['title']); ?></p>
-                            <button>REDEEM NOW</button>
-                            <button>ADD TO CART</button>
+                            <a href="redeem.php?id=<?php echo $voucher['voucher_id']; ?>" class="btn">REDEEM NOW</a>
+                            <a href="cart.php?action=add&id=<?= $voucher['voucher_id']; ?>" class="btn">ADD TO CART</a>
                         </div>
                     <?php endforeach; ?>
                 <?php else: ?>
                     <p>No vouchers match your search.</p>
+                <?php endif; ?>
+            </div>
+        <?php endif; ?>
+
+        <!-- Category Results Section -->
+        <?php if ($categoryResults !== null): ?>
+            <h2><?php echo ucfirst($_GET['category']); ?> Vouchers</h2>
+            <div class="voucher-grid">
+                <?php if (!empty($categoryResults)): ?>
+                    <?php foreach ($categoryResults as $voucher): ?>
+                        <div class="voucher-card">
+                            <a href="voucher_details.php?id=<?php echo $voucher['voucher_id']; ?>" class="image-link">
+                                <img src="<?php echo htmlspecialchars($voucher['image']); ?>"
+                                    alt="<?php echo htmlspecialchars($voucher['title']); ?>">
+                            </a>
+                            <p><?php echo htmlspecialchars($voucher['title']); ?></p>
+                            <small>Points: <?php echo htmlspecialchars($voucher['points']); ?></small>
+                            <a href="redeem.php?id=<?php echo $voucher['voucher_id']; ?>" class="btn">REDEEM NOW</a>
+                            <a href="cart.php?action=add&id=<?= $voucher['voucher_id']; ?>" class="btn">ADD TO CART</a>
+                        </div>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <p>No vouchers found in this category.</p>
                 <?php endif; ?>
             </div>
         <?php endif; ?>
@@ -371,8 +578,8 @@ if (isset($_GET['search']) && !empty($_GET['search'])) {
                         </a>
                         <p><?php echo htmlspecialchars($voucher['title']); ?></p>
                         <small>Total Redeemed: <?php echo $voucher['total_quantity']; ?></small>
-                        <button>REDEEM NOW</button>
-                        <button>ADD TO CART</button>
+                        <a href="redeem.php?id=<?php echo $voucher['voucher_id']; ?>" class="btn">REDEEM NOW</a>
+                        <a href="cart.php?action=add&id=<?= $voucher['voucher_id']; ?>" class="btn">ADD TO CART</a>
                     </div>
                 <?php endforeach; ?>
             <?php else: ?>
@@ -380,5 +587,38 @@ if (isset($_GET['search']) && !empty($_GET['search'])) {
             <?php endif; ?>
         </div>
     </main>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const slides = document.querySelector(".slides");
+    const slideItems = document.querySelectorAll(".slide");
+    const prevBtn = document.querySelector(".prev");
+    const nextBtn = document.querySelector(".next");
+    
+    let currentIndex = 0;
+    const totalSlides = slideItems.length;
+
+    function showSlide(index) {
+        slides.style.transform = `translateX(-${index * 100}%)`;
+    }
+
+    prevBtn.addEventListener("click", function () {
+        currentIndex = (currentIndex - 1 + totalSlides) % totalSlides;
+        showSlide(currentIndex);
+    });
+
+    nextBtn.addEventListener("click", function () {
+        currentIndex = (currentIndex + 1) % totalSlides;
+        showSlide(currentIndex);
+    });
+
+    // Optional: auto-slide every 5s
+    setInterval(function () {
+        currentIndex = (currentIndex + 1) % totalSlides;
+        showSlide(currentIndex);
+    }, 5000);
+});
+</script>
+
 </body>
 </html>

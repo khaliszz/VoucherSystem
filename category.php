@@ -16,7 +16,31 @@ $userSql = "SELECT points FROM users WHERE user_id = ?";
 $userStmt = $conn->prepare($userSql);
 $userStmt->execute([$userId]);
 $user = $userStmt->fetch(PDO::FETCH_ASSOC);
-$userPoints = $user['points'] ?? 0; // Default to 0 if no points
+$userPoints = $user['points'] ?? 0;
+
+// ✅ Handle Add to Cart
+$successMsg = "";
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['voucher_id'])) {
+    $voucherId = intval($_POST['voucher_id']);
+
+    // Check if already in cart
+    $checkSql = "SELECT * FROM cart_items WHERE user_id = ? AND voucher_id = ?";
+    $checkStmt = $conn->prepare($checkSql);
+    $checkStmt->execute([$userId, $voucherId]);
+
+    if ($checkStmt->rowCount() > 0) {
+        // Update quantity if already exists
+        $conn->prepare("UPDATE cart_items SET quantity = quantity + 1 WHERE user_id = ? AND voucher_id = ?")
+             ->execute([$userId, $voucherId]);
+    } else {
+        // Insert new item
+        $conn->prepare("INSERT INTO cart_items (user_id, voucher_id, quantity) VALUES (?, ?, 1)")
+             ->execute([$userId, $voucherId]);
+    }
+
+    // Success message
+    $successMsg = "Voucher added to cart ✅";
+}
 
 // ✅ All categories for dropdown
 $catSql = "SELECT category_id, name FROM category";
@@ -28,7 +52,6 @@ $categories = $catStmt->fetchAll(PDO::FETCH_ASSOC);
 if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
     die("Invalid category.");
 }
-
 $category_id = intval($_GET['id']);
 
 // ✅ Fetch category name
@@ -43,7 +66,6 @@ if (!$category) {
 
 // ✅ Handle search
 $search = isset($_GET['search']) ? trim($_GET['search']) : "";
-
 if (!empty($search)) {
     $sql = "SELECT * FROM voucher WHERE category_id = ? AND title LIKE ?";
     $stmt = $conn->prepare($sql);
@@ -53,7 +75,6 @@ if (!empty($search)) {
     $stmt = $conn->prepare($sql);
     $stmt->execute([$category_id]);
 }
-
 $vouchers = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 <!DOCTYPE html>
@@ -76,15 +97,10 @@ $vouchers = $stmt->fetchAll(PDO::FETCH_ASSOC);
             --white-color: #ffffff;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
             font-family: 'Poppins', sans-serif;
-            margin: 0;
             background: var(--background-color);
             color: var(--text-color);
         }
@@ -98,144 +114,41 @@ $vouchers = $stmt->fetchAll(PDO::FETCH_ASSOC);
             box-shadow: 0 2px 10px rgba(137, 99, 232, 0.3);
         }
 
-        nav {
-            display: flex;
-            align-items: center;
-            gap: 30px;
-        }
+        nav { display: flex; align-items: center; gap: 30px; }
+        nav a { text-decoration: none; color: var(--text-color); font-weight: 600; }
 
-        nav a {
-            text-decoration: none;
-            color: var(--text-color);
-            font-weight: 600;
-            font-size: 1rem;
-            transition: opacity 0.3s ease;
-        }
-
-        nav a:hover {
-            color: #6a5af9;
-        }
-
-        /* Dropdown */
-        .dropdown {
-            position: relative;
-            display: inline-block;
-        }
-
-        .dropdown-content {
-            display: none;
-            position: absolute;
-            top: 100%;
-            left: 0;
-            background-color: var(--white-color);
-            min-width: 180px;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
-            border-radius: 8px;
-            z-index: 1;
-        }
-
-        .dropdown-content a {
-            color: var(--text-color);
-            padding: 12px 16px;
-            text-decoration: none;
-            display: block;
-            transition: background 0.2s ease;
-        }
-
-        .dropdown-content a:hover {
-            background: #f1f1f1;
-            color: #6a5af9;
-        }
-
-        .dropdown:hover .dropdown-content {
-            display: block;
-        }
-
-        .profile-btn {
-            display: inline-block;
-            border-radius: 50%;
-            overflow: hidden;
-            width: 45px;
-            height: 45px;
-            cursor: pointer;
-            transition: transform 0.3s ease;
-        }
-
-        .profile-btn:hover {
-            transform: scale(1.05);
-        }
-
-        .profile-btn .profile-img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            border-radius: 50%;
-            border: 3px solid var(--white-color);
-            transition: border-color 0.3s ease;
-        }
-
-        .profile-btn:hover .profile-img {
-            border-color: #6a5af9;
-        }
-
-        main {
-            padding: 40px 30px;
-        }
-
-        main h1 {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: var(--text-color);
-            margin-bottom: 1rem;
-        }
-
-        main h2 {
-            font-size: 1.8rem;
-            font-weight: 600;
-            color: var(--text-color);
-            margin: 2rem 0 1rem;
-        }
-
-        /* ✅ Copying homepage styles */
-        .search-bar {
-            display: flex;
-            justify-content: flex-start;
-            gap: 10px;
-            margin: 20px 0;
-        }
-
-        .search-input {
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            width: 250px;
-            font-family: 'Poppins', sans-serif;
-        }
-
-        .search-button {
-            background: var(--button-gradient);
-            border: none;
+        .user-points {
+            background: var(--white-color);
             padding: 10px 20px;
             border-radius: 8px;
-            color: var(--white-color);
-            cursor: pointer;
-            font-size: 0.9rem;
+            margin: 15px 30px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            font-size: 1rem;
             font-weight: 600;
-            font-family: 'Poppins', sans-serif;
-            transition: all 0.3s ease;
+            color: var(--text-color);
+            text-align: right;
         }
 
+        main { padding: 40px 30px; margin-top: -30px; }
+
+        .search-bar {
+            display: flex; gap: 10px; margin: 20px 0;
+        }
+        .search-input {
+            padding: 10px; border: 1px solid #ccc; border-radius: 8px; width: 250px;
+        }
+        .search-button {
+            background: var(--button-gradient); border: none; padding: 10px 20px;
+            border-radius: 8px; color: var(--white-color); cursor: pointer;
+            font-size: 0.9rem; font-weight: 600;
+        }
         .search-button:hover {
             background: var(--button-hover-gradient);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
-            transform: translateY(-2px);
         }
 
         .voucher-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 25px;
-            margin-top: 20px;
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px; margin-top: 20px;
         }
 
         .voucher-card {
@@ -244,33 +157,16 @@ $vouchers = $stmt->fetchAll(PDO::FETCH_ASSOC);
             padding: 20px;
             text-align: center;
             box-shadow: 0 10px 25px rgba(0,0,0,0.08);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .voucher-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 35px rgba(0,0,0,0.12);
+            transition: 0.3s ease;
         }
 
         .voucher-card img {
-            width: 100%;
-            height: 150px;
-            object-fit: cover;
-            border-radius: 12px;
-            margin-bottom: 15px;
+            width: 100%; height: 150px; object-fit: cover;
+            border-radius: 12px; margin-bottom: 15px;
         }
 
-        .voucher-card h3 {
-            font-size: 1.2rem;
-            font-weight: 600;
-            margin-bottom: 8px;
-        }
-
-        .voucher-card p {
-            font-size: 0.9rem;
-            color: var(--text-secondary-color);
-            margin-bottom: 15px;
-        }
+        .voucher-card h3 { font-size: 1.2rem; margin-bottom: 8px; }
+        .voucher-card p { font-size: 0.9rem; color: var(--text-secondary-color); margin-bottom: 15px; }
 
         .voucher-card button {
             background: var(--button-gradient);
@@ -282,48 +178,95 @@ $vouchers = $stmt->fetchAll(PDO::FETCH_ASSOC);
             cursor: pointer;
             font-size: 0.9rem;
             font-weight: 600;
-            font-family: 'Poppins', sans-serif;
-            transition: all 0.3s ease;
             min-width: 110px;
         }
+        .voucher-card button:hover { background: var(--button-hover-gradient); }
 
-        .voucher-card button:hover {
-            background: var(--button-hover-gradient);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
-            transform: translateY(-2px);
-        }
-
-         /*✅ Make the image clickable*/
-        .voucher-card .image-link {
-            display: block; /* Ensure the <a> tag fills the entire image area */
-        }
-
-         /* Style for User Points Display */
-        .user-points {
-            background: var(--white-color);
-            padding: 10px 20px;
-            border-radius: 8px;
-            margin: 15px 30px; /* Adjusted for better spacing */
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            font-size: 1rem;
-            font-weight: 600;
-            color: var(--text-color);
-            text-align: right; /* Align to the right */
-        }
-
-        main {
-            padding: 40px 30px;
-            margin-top: -30px; /* Adjust this value as needed */
+        /* ✅ Success message */
+        .success-msg {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            padding: 12px 15px;
+            border-radius: 6px;
+            margin: 15px 30px;
+            font-size: 0.95rem;
         }
     </style>
 </head>
 <body>
-    <?php include 'navbar.php'; ?>
+    <header>
+    <nav>
+        <a href="homepage.php">Home</a>
 
-     <!-- User Points Display -->
+        <!-- Category Dropdown -->
+        <div class="dropdown">
+            <a href="#" class="dropbtn">Category ▼</a>
+            <div class="dropdown-content">
+                <?php foreach ($categories as $cat): ?>
+                    <a href="category.php?id=<?php echo $cat['category_id']; ?>">
+                        <?php echo htmlspecialchars($cat['name']); ?>
+                    </a>
+                <?php endforeach; ?>
+            </div>
+        </div>
+    </nav>
+</header>
+
+<style>
+    .dropdown {
+        position: relative;
+        display: inline-block;
+    }
+
+    .dropbtn {
+        text-decoration: none;
+        color: var(--text-color);
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .dropdown-content {
+        display: none;
+        position: absolute;
+        background: var(--white-color);
+        min-width: 180px;
+        box-shadow: 0px 8px 16px rgba(0,0,0,0.1);
+        border-radius: 8px;
+        z-index: 1000;
+    }
+
+    .dropdown-content a {
+        display: block;
+        padding: 10px 15px;
+        text-decoration: none;
+        color: var(--text-color);
+        font-weight: 500;
+    }
+
+    .dropdown-content a:hover {
+        background: #f0f0f0;
+    }
+
+    .dropdown:hover .dropdown-content {
+        display: block;
+    }
+
+    .dropdown:hover .dropbtn {
+        color: #6352e7;
+    }
+</style>
+
+
+    <!-- User Points Display -->
     <div class="user-points">
         Your Points: <?php echo htmlspecialchars($userPoints); ?>
     </div>
+
+    <!-- ✅ Success Message -->
+    <?php if (!empty($successMsg)): ?>
+        <div class="success-msg"><?php echo $successMsg; ?></div>
+    <?php endif; ?>
 
     <main>
         <h1><?php echo htmlspecialchars($category['name']); ?> Vouchers</h1>
@@ -347,8 +290,18 @@ $vouchers = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
                       <h3><?php echo htmlspecialchars($voucher['title']); ?></h3>
                       <p><?php echo $voucher['points']; ?> points</p>
-                      <button>REDEEM NOW</button>
-                      <button>ADD TO CART</button>
+
+                      <!-- Redeem button -->
+                      <form action="redeem.php" method="post" style="display:inline;">
+                          <input type="hidden" name="voucher_id" value="<?php echo $voucher['voucher_id']; ?>">
+                          <button type="submit">REDEEM NOW</button>
+                      </form>
+
+                      <!-- ✅ Add to cart button -->
+                      <form method="post" action="category.php?id=<?php echo $category_id; ?>&search=<?php echo urlencode($search); ?>" style="display:inline;">
+                          <input type="hidden" name="voucher_id" value="<?php echo $voucher['voucher_id']; ?>">
+                          <button type="submit">ADD TO CART</button>
+                      </form>
                     </div>
                 <?php endforeach; ?>
             <?php else: ?>
