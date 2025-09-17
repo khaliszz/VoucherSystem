@@ -97,7 +97,7 @@ if (!isset($cartCount)) {
 
         <!-- Profile Button -->
         <a href="profile.php" class="profile-btn">
-            <img src="<?php echo $_SESSION['profile_image'] ?? 'default-avatar.png'; ?>" alt="Profile" class="profile-img">
+            <img src="<?php echo $_SESSION['profile_image'] ?? 'images/default-avatar.png'; ?>" alt="Profile" class="profile-img">
         </a>
     </div>
 </header>
