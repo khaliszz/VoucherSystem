@@ -597,11 +597,11 @@ $cartCount = $cartRow['total'] ?? 0;
             
             <!-- Quick Filter Buttons - MATCHING HOMEPAGE -->
             <div class="quick-filters">
-                <a href="category.php?id=<?php echo $category_id; ?>&min_points=0&max_points=50" class="quick-filter-btn">0-50 Points</a>
-                <a href="category.php?id=<?php echo $category_id; ?>&min_points=51&max_points=100" class="quick-filter-btn">51-100 Points</a>
-                <a href="category.php?id=<?php echo $category_id; ?>&min_points=101&max_points=200" class="quick-filter-btn">101-200 Points</a>
-                <a href="category.php?id=<?php echo $category_id; ?>&min_points=201&max_points=500" class="quick-filter-btn">201-500 Points</a>
-                <a href="category.php?id=<?php echo $category_id; ?>&min_points=501" class="quick-filter-btn">500+ Points</a>
+                <a href="category.php?id=<?php echo $category_id; ?>&min_points=500&max_points=1000" class="quick-filter-btn">500-1000 Points</a>
+                <a href="category.php?id=<?php echo $category_id; ?>&min_points=1001&max_points=2000" class="quick-filter-btn">1001-2000 Points</a>
+                <a href="category.php?id=<?php echo $category_id; ?>&min_points=20011&max_points=3000" class="quick-filter-btn">2001-3000 Points</a>
+                <a href="category.php?id=<?php echo $category_id; ?>&min_points=3001&max_points=4000" class="quick-filter-btn">3001-4000 Points</a>
+                <a href="category.php?id=<?php echo $category_id; ?>&min_points=4001" class="quick-filter-btn">4000+ Points</a>
             </div>
         </div>
 
