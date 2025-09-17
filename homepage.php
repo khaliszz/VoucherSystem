@@ -10,6 +10,7 @@ if (!isset($_SESSION['user_id'])) {
 // Database connection
 require_once 'connection.php';
 
+
 // ✅ Fetch user points
 $userId = $_SESSION['user_id'];
 $userSql = "SELECT points FROM users WHERE user_id = ?";
@@ -31,11 +32,40 @@ $stmt = $conn->prepare($sql);
 $stmt->execute();
 $topVouchers = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// ✅ Fetch categories for dropdown
+// ✅ Fetch categories
 $catSql = "SELECT category_id, name FROM category";
 $catStmt = $conn->prepare($catSql);
 $catStmt->execute();
 $categories = $catStmt->fetchAll(PDO::FETCH_ASSOC);
+
+// Create mapping of lowercase name → ID
+$categoryMap = [];
+foreach ($categories as $cat) {
+    $categoryMap[strtolower($cat['name'])] = $cat['category_id'];
+}
+
+// ✅ Handle category filter
+$categoryResults = null; // <-- set to null by default (no category selected)
+
+if (isset($_GET['category']) && !empty($_GET['category'])) {
+    $catKey = strtolower($_GET['category']);
+    if (isset($categoryMap[$catKey])) {
+        $selectedCategoryId = $categoryMap[$catKey];
+
+        $voucherSql = "
+            SELECT voucher_id, title, image, points, description
+            FROM voucher
+            WHERE category_id = ?
+            ORDER BY voucher_id DESC
+        ";
+        $voucherStmt = $conn->prepare($voucherSql);
+        $voucherStmt->execute([$selectedCategoryId]);
+        $categoryResults = $voucherStmt->fetchAll(PDO::FETCH_ASSOC);
+    } else {
+        $categoryResults = []; // no valid category found
+    }
+}
+
 
 // ✅ Handle search
 $searchResults = [];
@@ -47,6 +77,13 @@ if (isset($_GET['search']) && !empty($_GET['search'])) {
     $searchStmt->execute();
     $searchResults = $searchStmt->fetchAll(PDO::FETCH_ASSOC);
 }
+
+// ✅ Fetch promotions
+$promoSql = "SELECT promote_id, title, image, descriptions FROM promotion";
+$promoStmt = $conn->prepare($promoSql);
+$promoStmt->execute();
+$promotions = $promoStmt->fetchAll(PDO::FETCH_ASSOC);
+
 
 // ✅ Fetch cart count
 $cartCount = 0;
@@ -213,6 +250,72 @@ $cartCount = $cartRow['total'] ?? 0;
             margin: 2rem 0 1rem;
         }
 
+
+        /* Promotion Slider */
+        .promo-slider {
+            width: 1000px;
+            height: 250px;
+            margin: 30px auto;
+            position: relative;
+            overflow: hidden;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            background: #fff;
+        }
+
+        .slides {
+            display: flex;
+            transition: transform 0.6s ease-in-out;
+            width: 100%;
+            height: 100%;
+        }
+
+        .slide {
+            min-width: 100%;
+            height: 100%;
+            box-sizing: border-box;
+            position: relative;
+        }
+
+        .slide img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;             /* crop while filling container */
+            object-position: center center; /* ✅ center horizontally + vertically */
+            border-radius: 12px;
+        }
+
+
+        /* Arrows */
+        .promo-slider .prev,
+        .promo-slider .next {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0,0,0,0.5);
+            color: #fff;
+            border: none;
+            padding: 10px 15px;
+            cursor: pointer;
+            border-radius: 50%;
+            font-size: 18px;
+            transition: background 0.3s;
+            z-index: 10;
+        }
+
+        .promo-slider .prev:hover,
+        .promo-slider .next:hover {
+            background: rgba(0,0,0,0.8);
+        }
+
+        .promo-slider .prev {
+            left: 15px;
+        }
+
+        .promo-slider .next {
+            right: 15px;
+        }
+
         /* Voucher Grid Style Update */
         .voucher-grid {
             display: flex;
@@ -360,8 +463,51 @@ $cartCount = $cartRow['total'] ?? 0;
         Your Points: <?php echo htmlspecialchars($userPoints); ?>
     </div>
 
+    <!-- Promotion Slider -->
+    <?php if (!empty($promotions)): ?>
+    <div class="promo-slider">
+        <div class="slides">
+            <?php foreach ($promotions as $promo): ?>
+                <div class="slide">
+                    <img src="<?php echo htmlspecialchars($promo['image']); ?>" 
+                        alt="<?php echo htmlspecialchars($promo['title']); ?>">
+                </div>
+            <?php endforeach; ?>
+        </div>
+
+        <!-- Navigation Arrows -->
+        <button class="prev">&#10094;</button>
+        <button class="next">&#10095;</button>
+    </div>
+    <?php endif; ?>
+
     <main>
         <h1>Home Page</h1>
+
+        <!-- Category Buttons -->
+        <form method="get" action="" style="margin: 20px 0; text-align:left;">
+            <button type="submit" name="category" value="fashion"
+                style="padding:10px 15px; margin:5px; border:none; border-radius:20px;
+                    background: var(--button-gradient); color:#fff; font-weight:600; cursor:pointer;">
+                Fashion
+            </button>
+            <button type="submit" name="category" value="food and beverage"
+                style="padding:10px 15px; margin:5px; border:none; border-radius:20px;
+                    background: var(--button-gradient); color:#fff; font-weight:600; cursor:pointer;">
+                Food & Beverage
+            </button>
+            <button type="submit" name="category" value="travel"
+                style="padding:10px 15px; margin:5px; border:none; border-radius:20px;
+                    background: var(--button-gradient); color:#fff; font-weight:600; cursor:pointer;">
+                Travel
+            </button>
+            <button type="submit" name="category" value="sports"
+                style="padding:10px 15px; margin:5px; border:none; border-radius:20px;
+                    background: var(--button-gradient); color:#fff; font-weight:600; cursor:pointer;">
+                Sports
+            </button>
+        </form>
+
 
         <!-- 🔍 Search Bar -->
         <form method="get" action="" style="margin: 20px 0; text-align:left;">
@@ -397,6 +543,29 @@ $cartCount = $cartRow['total'] ?? 0;
             </div>
         <?php endif; ?>
 
+        <!-- Category Results Section -->
+        <?php if ($categoryResults !== null): ?>
+            <h2><?php echo ucfirst($_GET['category']); ?> Vouchers</h2>
+            <div class="voucher-grid">
+                <?php if (!empty($categoryResults)): ?>
+                    <?php foreach ($categoryResults as $voucher): ?>
+                        <div class="voucher-card">
+                            <a href="voucher_details.php?id=<?php echo $voucher['voucher_id']; ?>" class="image-link">
+                                <img src="<?php echo htmlspecialchars($voucher['image']); ?>"
+                                    alt="<?php echo htmlspecialchars($voucher['title']); ?>">
+                            </a>
+                            <p><?php echo htmlspecialchars($voucher['title']); ?></p>
+                            <small>Points: <?php echo htmlspecialchars($voucher['points']); ?></small>
+                            <a href="redeem.php?id=<?php echo $voucher['voucher_id']; ?>" class="btn">REDEEM NOW</a>
+                            <a href="cart.php?action=add&id=<?= $voucher['voucher_id']; ?>" class="btn">ADD TO CART</a>
+                        </div>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <p>No vouchers found in this category.</p>
+                <?php endif; ?>
+            </div>
+        <?php endif; ?>
+
         <!-- Top Pick Voucher Section -->
         <h2>Top Pick Voucher</h2>
         <div class="voucher-grid">
@@ -418,5 +587,38 @@ $cartCount = $cartRow['total'] ?? 0;
             <?php endif; ?>
         </div>
     </main>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const slides = document.querySelector(".slides");
+    const slideItems = document.querySelectorAll(".slide");
+    const prevBtn = document.querySelector(".prev");
+    const nextBtn = document.querySelector(".next");
+    
+    let currentIndex = 0;
+    const totalSlides = slideItems.length;
+
+    function showSlide(index) {
+        slides.style.transform = `translateX(-${index * 100}%)`;
+    }
+
+    prevBtn.addEventListener("click", function () {
+        currentIndex = (currentIndex - 1 + totalSlides) % totalSlides;
+        showSlide(currentIndex);
+    });
+
+    nextBtn.addEventListener("click", function () {
+        currentIndex = (currentIndex + 1) % totalSlides;
+        showSlide(currentIndex);
+    });
+
+    // Optional: auto-slide every 5s
+    setInterval(function () {
+        currentIndex = (currentIndex + 1) % totalSlides;
+        showSlide(currentIndex);
+    }, 5000);
+});
+</script>
+
 </body>
 </html>
