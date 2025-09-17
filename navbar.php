@@ -13,6 +13,18 @@ $categories = $catStmt->fetchAll(PDO::FETCH_ASSOC);
 if (!isset($cartCount)) {
     $cartCount = 0;
 }
+
+// ✅ Fetch user profile image for navbar display
+$userProfileImage = 'images/default-avatar.png'; // default fallback
+if (isset($_SESSION['user_id'])) {
+    $profileSql = "SELECT profile_image FROM users WHERE user_id = ?";
+    $profileStmt = $conn->prepare($profileSql);
+    $profileStmt->execute([$_SESSION['user_id']]);
+    $profileResult = $profileStmt->fetch(PDO::FETCH_ASSOC);
+    if ($profileResult && !empty($profileResult['profile_image'])) {
+        $userProfileImage = $profileResult['profile_image'];
+    }
+}
 ?>
 <style>
     .navbar-cart-btn {
@@ -97,7 +109,7 @@ if (!isset($cartCount)) {
 
         <!-- Profile Button -->
         <a href="profile.php" class="profile-btn">
-            <img src="<?php echo $_SESSION['profile_image'] ?? 'images/default-avatar.png'; ?>" alt="Profile" class="profile-img">
+            <img src="<?php echo htmlspecialchars($userProfileImage); ?>" alt="Profile" class="profile-img">
         </a>
     </div>
 </header>
