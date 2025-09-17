@@ -48,6 +48,13 @@ if (isset($_GET['search']) && !empty($_GET['search'])) {
     $searchResults = $searchStmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
+// ✅ Fetch promotions
+$promoSql = "SELECT promote_id, title, image, descriptions FROM promotion";
+$promoStmt = $conn->prepare($promoSql);
+$promoStmt->execute();
+$promotions = $promoStmt->fetchAll(PDO::FETCH_ASSOC);
+
+
 // ✅ Fetch cart count
 $cartCount = 0;
 $cartSql = "SELECT SUM(quantity) as total FROM cart_items WHERE user_id = ?";
@@ -213,6 +220,72 @@ $cartCount = $cartRow['total'] ?? 0;
             margin: 2rem 0 1rem;
         }
 
+
+        /* Promotion Slider */
+        .promo-slider {
+            width: 1000px;
+            height: 250px;
+            margin: 30px auto;
+            position: relative;
+            overflow: hidden;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            background: #fff;
+        }
+
+        .slides {
+            display: flex;
+            transition: transform 0.6s ease-in-out;
+            width: 100%;
+            height: 100%;
+        }
+
+        .slide {
+            min-width: 100%;
+            height: 100%;
+            box-sizing: border-box;
+            position: relative;
+        }
+
+        .slide img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;             /* crop while filling container */
+            object-position: center center; /* ✅ center horizontally + vertically */
+            border-radius: 12px;
+        }
+
+
+        /* Arrows */
+        .promo-slider .prev,
+        .promo-slider .next {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0,0,0,0.5);
+            color: #fff;
+            border: none;
+            padding: 10px 15px;
+            cursor: pointer;
+            border-radius: 50%;
+            font-size: 18px;
+            transition: background 0.3s;
+            z-index: 10;
+        }
+
+        .promo-slider .prev:hover,
+        .promo-slider .next:hover {
+            background: rgba(0,0,0,0.8);
+        }
+
+        .promo-slider .prev {
+            left: 15px;
+        }
+
+        .promo-slider .next {
+            right: 15px;
+        }
+
         /* Voucher Grid Style Update */
         .voucher-grid {
             display: flex;
@@ -360,6 +433,24 @@ $cartCount = $cartRow['total'] ?? 0;
         Your Points: <?php echo htmlspecialchars($userPoints); ?>
     </div>
 
+    <!-- Promotion Slider -->
+    <?php if (!empty($promotions)): ?>
+    <div class="promo-slider">
+        <div class="slides">
+            <?php foreach ($promotions as $promo): ?>
+                <div class="slide">
+                    <img src="<?php echo htmlspecialchars($promo['image']); ?>" 
+                        alt="<?php echo htmlspecialchars($promo['title']); ?>">
+                </div>
+            <?php endforeach; ?>
+        </div>
+
+        <!-- Navigation Arrows -->
+        <button class="prev">&#10094;</button>
+        <button class="next">&#10095;</button>
+    </div>
+    <?php endif; ?>
+
     <main>
         <h1>Home Page</h1>
 
@@ -418,5 +509,38 @@ $cartCount = $cartRow['total'] ?? 0;
             <?php endif; ?>
         </div>
     </main>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const slides = document.querySelector(".slides");
+    const slideItems = document.querySelectorAll(".slide");
+    const prevBtn = document.querySelector(".prev");
+    const nextBtn = document.querySelector(".next");
+    
+    let currentIndex = 0;
+    const totalSlides = slideItems.length;
+
+    function showSlide(index) {
+        slides.style.transform = `translateX(-${index * 100}%)`;
+    }
+
+    prevBtn.addEventListener("click", function () {
+        currentIndex = (currentIndex - 1 + totalSlides) % totalSlides;
+        showSlide(currentIndex);
+    });
+
+    nextBtn.addEventListener("click", function () {
+        currentIndex = (currentIndex + 1) % totalSlides;
+        showSlide(currentIndex);
+    });
+
+    // Optional: auto-slide every 5s
+    setInterval(function () {
+        currentIndex = (currentIndex + 1) % totalSlides;
+        showSlide(currentIndex);
+    }, 5000);
+});
+</script>
+
 </body>
 </html>
