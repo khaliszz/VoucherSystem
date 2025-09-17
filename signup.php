@@ -8,9 +8,6 @@ if (isset($_SESSION['user_email'])) {
     exit;
 }
 
-$error = '';
-$success = '';
-
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $username = trim($_POST['username']);
     $email = trim($_POST['email']);
@@ -42,47 +39,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     $username,
                     $password
                 ]);
-                $success = "Signup successful! You can now login.";
+                // Redirect to login with success message
+                header("Location: login.php?success=" . urlencode("Signup successful! You can now login."));
+                exit;
             }
         } catch (PDOException $e) {
             $error = "Database error: " . $e->getMessage();
         }
     }
+    // Redirect to login with error message and show signup tab
+    if (isset($error)) {
+        header("Location: login.php?error=" . urlencode($error) . "&show=signup");
+        exit;
+    }
+} else {
+    // If accessed directly, redirect to login
+    header("Location: login.php?show=signup");
+    exit;
 }
 ?>
-
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Sign Up</title>
-    <style>
-        .error { color: red; margin: 10px 0; padding: 10px; background: #ffe6e6; border: 1px solid #ffcccc; }
-        .success { color: green; margin: 10px 0; padding: 10px; background: #e6ffe6; border: 1px solid #ccffcc; }
-        body { font-family: Arial, sans-serif; max-width: 400px; margin: 50px auto; padding: 20px; }
-        input, textarea { width: 100%; padding: 8px; margin: 5px 0; border: 1px solid #ddd; border-radius: 4px; }
-        button { background: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; }
-        button:hover { background: #0056b3; }
-    </style>
-</head>
-<body>
-    <h2>Sign Up</h2>
-    
-    <?php if ($error): ?>
-        <div class="error"><?php echo htmlspecialchars($error); ?></div>
-    <?php endif; ?>
-    
-    <?php if ($success): ?>
-        <div class="success"><?php echo htmlspecialchars($success); ?></div>
-    <?php endif; ?>
-    
-    <form method="POST">
-        <input type="text" name="username" placeholder="Username" value="<?php echo htmlspecialchars($_POST['username'] ?? ''); ?>" required><br><br>
-        <input type="email" name="email" placeholder="Email" value="<?php echo htmlspecialchars($_POST['email'] ?? ''); ?>" required><br><br>
-        <input type="password" name="password" placeholder="Password" required><br><br>
-        <input type="password" name="confirm_password" placeholder="Confirm Password" required><br><br>
-        <button type="submit">Sign Up</button>
-    </form>
-    
-    <p>Already have an account? <a href="login.php">Login here</a></p>
-</body>
-</html>

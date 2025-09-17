@@ -24,7 +24,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             // $updateStmt = $conn->prepare("UPDATE users SET last_login = NOW() WHERE user_id = ?");
             // $updateStmt->execute([$user['user_id']]);
 
-            header("Location: welcome.php");
+            header("Location: homepage.php");
             exit;
         } else {
             // ❌ Wrong email or password
