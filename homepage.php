@@ -47,6 +47,14 @@ if (isset($_GET['search']) && !empty($_GET['search'])) {
     $searchStmt->execute();
     $searchResults = $searchStmt->fetchAll(PDO::FETCH_ASSOC);
 }
+
+// ✅ Fetch cart count
+$cartCount = 0;
+$cartSql = "SELECT SUM(quantity) as total FROM cart_items WHERE user_id = ?";
+$cartStmt = $conn->prepare($cartSql);
+$cartStmt->execute([$userId]);
+$cartRow = $cartStmt->fetch(PDO::FETCH_ASSOC);
+$cartCount = $cartRow['total'] ?? 0;
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -106,6 +114,23 @@ if (isset($_GET['search']) && !empty($_GET['search'])) {
 
         nav a:hover {
             color: #6a5af9;
+        }
+
+        /* ✅ Cart badge */
+        .cart-btn {
+            position: relative;
+            display: inline-block;
+        }
+        .cart-badge {
+            position: absolute;
+            top: -6px;
+            right: -10px;
+            background: red;
+            color: #fff;
+            font-size: 12px;
+            padding: 2px 6px;
+            border-radius: 50%;
+            font-weight: bold;
         }
 
         /* Dropdown */
@@ -306,6 +331,11 @@ if (isset($_GET['search']) && !empty($_GET['search'])) {
 </head>
 <body>
     <?php include 'navbar.php'; ?>
+
+    <!-- ✅ Cart badge inside navbar.php -->
+    <script>
+        // Optional: JS could go here if you want AJAX update later
+    </script>
 
     <?php if (isset($_SESSION['success_message'])): ?>
     <div style="
