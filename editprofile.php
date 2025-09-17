@@ -9,7 +9,7 @@ if (!isset($_SESSION['user_id'])) {
 
 // Database connection
 require_once 'connection.php';
-
+require_once 'cloudinary_upload.php';
 // Fetch user details
 $userId = $_SESSION['user_id'];
 $userSql = "SELECT username, email, phone_number, address, profile_image FROM users WHERE user_id = ?";
@@ -19,22 +19,33 @@ $user = $userStmt->fetch(PDO::FETCH_ASSOC);
 
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Get form data
     $username = $_POST['username'] ?? '';
     $phone_number = $_POST['phone_number'] ?? '';
     $address = $_POST['address'] ?? '';
-    
-    // Update user information
-    $updateSql = "UPDATE users SET username = ?, phone_number = ?, address = ? WHERE user_id = ?";
+    $profile_image_url = $user['profile_image']; // Default to existing image
+
+    // Handle image upload if a new file is provided
+    if (isset($_FILES['profile_image']) && $_FILES['profile_image']['error'] === UPLOAD_ERR_OK) {
+        $cloudinary = new CloudinaryService();
+        $uploadedUrl = $cloudinary->uploadImage($_FILES['profile_image']);
+        if ($uploadedUrl) {
+            $profile_image_url = $uploadedUrl;
+        }
+    }
+
+    // Update user information including profile_image
+    $updateSql = "UPDATE users SET username = ?, phone_number = ?, address = ?, profile_image = ? WHERE user_id = ?";
     $updateStmt = $conn->prepare($updateSql);
-    $updateStmt->execute([$username, $phone_number, $address, $userId]);
-    
+    $updateStmt->execute([$username, $phone_number, $address, $profile_image_url, $userId]);
+
     // Update session username if it changed
     if (!empty($username)) {
         $_SESSION['username'] = $username;
     }
     
-    // Set a flag to show the success modal
+    // Update session profile image
+    $_SESSION['profile_image'] = $profile_image_url;
+
     $showSuccessModal = true;
 }
 ?>
@@ -481,7 +492,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <img src="./images/default-avatar.png" alt="Profile Picture" class="profile-image">
                         <?php endif; ?>
                         <button type="button" class="choose-image-btn" onclick="document.getElementById('profileImageInput').click()">+</button>
-                        <input type="file" id="profileImageInput" accept="image/*" style="display: none;" onchange="previewImage(event)">
+                        <input type="file" id="profileImageInput" name="profile_image" accept="image/*" style="display: none;" onchange="previewImage(event)">
                     </div>
 
                     <div class="profile-info">

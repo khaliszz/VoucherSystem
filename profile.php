@@ -12,7 +12,7 @@ require_once 'connection.php';
 
 // Fetch user details
 $userId = $_SESSION['user_id'];
-$userSql = "SELECT username, email, points, about_me FROM users WHERE user_id = ?";
+$userSql = "SELECT username, email, points, about_me, profile_image FROM users WHERE user_id = ?";
 $userStmt = $conn->prepare($userSql);
 $userStmt->execute([$userId]);
 $user = $userStmt->fetch(PDO::FETCH_ASSOC);
@@ -440,19 +440,16 @@ $categories = $catStmt->fetchAll(PDO::FETCH_ASSOC);
 
         <div class="profile-container">
             <div class="profile-header">
-                <?php if (isset($_SESSION['profile_image']) && !empty($_SESSION['profile_image'])): ?>
-                    <?php 
-                    // Clean up the Google profile image URL to ensure it works
-                    $profile_image_url = $_SESSION['profile_image'];
-                    // Remove any size parameters and add a more reliable size
-                    $profile_image_url = preg_replace('/=s\\d+-c$/', '=s200-c', $profile_image_url);
-                    ?>
-                    <img src="<?php echo htmlspecialchars($profile_image_url); ?>" 
-                         alt="Profile Picture" class="profile-image"
-                         onerror="this.onerror=null; this.src='./images/default-avatar.png';">
+                <?php
+                $profile_image_url = $user['profile_image'] ?? '';
+                if (!empty($profile_image_url)):
+                ?>
+                <img src="<?php echo htmlspecialchars($profile_image_url); ?>"
+                alt="Profile Picture" class="profile-image"
+                onerror="this.onerror=null; this.src='./images/default-avatar.png';">
                 <?php else: ?>
                     <img src="./images/default-avatar.png" alt="Profile Picture" class="profile-image">
-                <?php endif; ?>
+                    <?php endif; ?>
 
                 <div class="profile-info">
                     <h2><?php echo htmlspecialchars($user['username'] ?? 'User'); ?></h2>

@@ -10,6 +10,7 @@ if (!isset($_SESSION['user_id'])) {
 // Database connection
 require_once 'connection.php';
 
+
 // ✅ Fetch user points
 $userId = $_SESSION['user_id'];
 $userSql = "SELECT points FROM users WHERE user_id = ?";
@@ -31,11 +32,40 @@ $stmt = $conn->prepare($sql);
 $stmt->execute();
 $topVouchers = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// ✅ Fetch categories for dropdown
+// ✅ Fetch categories
 $catSql = "SELECT category_id, name FROM category";
 $catStmt = $conn->prepare($catSql);
 $catStmt->execute();
 $categories = $catStmt->fetchAll(PDO::FETCH_ASSOC);
+
+// Create mapping of lowercase name → ID
+$categoryMap = [];
+foreach ($categories as $cat) {
+    $categoryMap[strtolower($cat['name'])] = $cat['category_id'];
+}
+
+// ✅ Handle category filter
+$categoryResults = null; // <-- set to null by default (no category selected)
+
+if (isset($_GET['category']) && !empty($_GET['category'])) {
+    $catKey = strtolower($_GET['category']);
+    if (isset($categoryMap[$catKey])) {
+        $selectedCategoryId = $categoryMap[$catKey];
+
+        $voucherSql = "
+            SELECT voucher_id, title, image, points, description
+            FROM voucher
+            WHERE category_id = ?
+            ORDER BY voucher_id DESC
+        ";
+        $voucherStmt = $conn->prepare($voucherSql);
+        $voucherStmt->execute([$selectedCategoryId]);
+        $categoryResults = $voucherStmt->fetchAll(PDO::FETCH_ASSOC);
+    } else {
+        $categoryResults = []; // no valid category found
+    }
+}
+
 
 // ✅ Handle search
 $searchResults = [];
@@ -454,6 +484,31 @@ $cartCount = $cartRow['total'] ?? 0;
     <main>
         <h1>Home Page</h1>
 
+        <!-- Category Buttons -->
+        <form method="get" action="" style="margin: 20px 0; text-align:left;">
+            <button type="submit" name="category" value="fashion"
+                style="padding:10px 15px; margin:5px; border:none; border-radius:20px;
+                    background: var(--button-gradient); color:#fff; font-weight:600; cursor:pointer;">
+                Fashion
+            </button>
+            <button type="submit" name="category" value="food and beverage"
+                style="padding:10px 15px; margin:5px; border:none; border-radius:20px;
+                    background: var(--button-gradient); color:#fff; font-weight:600; cursor:pointer;">
+                Food & Beverage
+            </button>
+            <button type="submit" name="category" value="travel"
+                style="padding:10px 15px; margin:5px; border:none; border-radius:20px;
+                    background: var(--button-gradient); color:#fff; font-weight:600; cursor:pointer;">
+                Travel
+            </button>
+            <button type="submit" name="category" value="sports"
+                style="padding:10px 15px; margin:5px; border:none; border-radius:20px;
+                    background: var(--button-gradient); color:#fff; font-weight:600; cursor:pointer;">
+                Sports
+            </button>
+        </form>
+
+
         <!-- 🔍 Search Bar -->
         <form method="get" action="" style="margin: 20px 0; text-align:left;">
             <input type="text" name="search" placeholder="Search voucher..."
@@ -484,6 +539,29 @@ $cartCount = $cartRow['total'] ?? 0;
                     <?php endforeach; ?>
                 <?php else: ?>
                     <p>No vouchers match your search.</p>
+                <?php endif; ?>
+            </div>
+        <?php endif; ?>
+
+        <!-- Category Results Section -->
+        <?php if ($categoryResults !== null): ?>
+            <h2><?php echo ucfirst($_GET['category']); ?> Vouchers</h2>
+            <div class="voucher-grid">
+                <?php if (!empty($categoryResults)): ?>
+                    <?php foreach ($categoryResults as $voucher): ?>
+                        <div class="voucher-card">
+                            <a href="voucher_details.php?id=<?php echo $voucher['voucher_id']; ?>" class="image-link">
+                                <img src="<?php echo htmlspecialchars($voucher['image']); ?>"
+                                    alt="<?php echo htmlspecialchars($voucher['title']); ?>">
+                            </a>
+                            <p><?php echo htmlspecialchars($voucher['title']); ?></p>
+                            <small>Points: <?php echo htmlspecialchars($voucher['points']); ?></small>
+                            <a href="redeem.php?id=<?php echo $voucher['voucher_id']; ?>" class="btn">REDEEM NOW</a>
+                            <a href="cart.php?action=add&id=<?= $voucher['voucher_id']; ?>" class="btn">ADD TO CART</a>
+                        </div>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <p>No vouchers found in this category.</p>
                 <?php endif; ?>
             </div>
         <?php endif; ?>
