@@ -428,7 +428,6 @@ $categories = $catStmt->fetchAll(PDO::FETCH_ASSOC);
     </style>
 </head>
 <body>
-    <?php include 'navbar.php'; ?>
 
     <main>
         <div class="page-header">
