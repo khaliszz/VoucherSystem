@@ -602,5 +602,27 @@ if (isset($_SESSION['user_id'])) {
         if (category) {
             document.getElementById('categoryField').value = category;
         }
+
+        // ✅ Preserve scroll position when clicking category links
+        const categoryLinks = document.querySelectorAll('.category-dropdown-content a');
+        
+        categoryLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                // Save current scroll position
+                const currentScrollY = window.scrollY;
+                sessionStorage.setItem('scrollPosition', currentScrollY.toString());
+            });
+        });
+
+        // Restore scroll position when page loads
+        const savedScrollPosition = sessionStorage.getItem('scrollPosition');
+        if (savedScrollPosition && window.location.pathname.includes('homepage.php')) {
+            // Small delay to ensure page is fully loaded
+            setTimeout(() => {
+                window.scrollTo(0, parseInt(savedScrollPosition));
+                // Clear the saved position after restoring
+                sessionStorage.removeItem('scrollPosition');
+            }, 100);
+        }
     });
 </script>

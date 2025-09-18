@@ -154,7 +154,7 @@ $cartCount = $cartRow['total'] ?? 0;
             margin: 0;
             background: var(--background-color);
             color: var(--text-color);
-            padding-top: 140px; /* Increased to accommodate navbar with search */
+            padding-top: 100px; /* Increased to accommodate navbar with search */
         }
 
         main {
