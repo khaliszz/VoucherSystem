@@ -430,15 +430,171 @@ $cartCount = $cartRow['total'] ?? 0;
             padding: 40px 30px;
             margin-top: -30px;
         }
+
+        /* Popup Modal Styles */
+        .popup-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .popup-modal {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            position: relative;
+            animation: modalOpen 0.3s ease;
+        }
+
+        @keyframes modalOpen {
+            from { opacity: 0; transform: translateY(-50px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .popup-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 24px;
+            cursor: pointer;
+            color: #777;
+            background: none;
+            border: none;
+        }
+
+        .popup-close:hover {
+            color: #333;
+        }
+
+        .popup-icon {
+            width: 70px;
+            height: 70px;
+            background: var(--success-gradient);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+        }
+
+        .popup-icon::after {
+            content: "✓";
+            color: white;
+            font-size: 2.5rem;
+            font-weight: bold;
+        }
+
+        .popup-title {
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .popup-description {
+            font-size: 1.1rem;
+            color: #777;
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+
+        .popup-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .popup-btn {
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            min-width: 120px;
+            text-align: center;
+        }
+
+        .add-more-btn {
+            background: #6c757d;
+            color: white;
+        }
+
+        .add-more-btn:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+
+        .view-cart-btn {
+            background: var(--button-gradient);
+            color: white;
+        }
+
+        .view-cart-btn:hover {
+            background: var(--button-hover-gradient);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+            transform: translateY(-2px);
+        }
+
+        /* Add success gradient variable */
+        :root {
+            --success-gradient: linear-gradient(90deg, #28a745 0%, #218838 100%);
+        }
     </style>
 </head>
 <body>
     <?php include 'navbar.php'; ?>
 
+<<<<<<< Updated upstream
     <!-- ✅ Cart badge inside navbar.php -->
     <script>
         // Optional: JS could go here if you want AJAX update later
     </script>
+=======
+    <!-- Popup Modal -->
+    <div id="cartPopup" class="popup-overlay">
+        <div class="popup-modal">
+            <button class="popup-close" id="closePopup">&times;</button>
+            <div class="popup-icon"></div>
+            <h2 class="popup-title">Successfully added to cart</h2>
+            <p class="popup-description">Your selected voucher has been successfully added to your shopping cart.</p>
+            <div class="popup-buttons">
+                <button class="popup-btn add-more-btn" id="addMoreBtn">Add more</button>
+                <button class="popup-btn view-cart-btn" id="viewCartBtn">View Cart</button>
+            </div>
+        </div>
+    </div>
+
+    <?php if (isset($_SESSION['success_message'])): ?>
+        <div style="
+            background:#d4edda;
+            color:#155724;
+            border:1px solid #c3e6cb;
+            padding:12px 20px;
+            margin:15px 30px;
+            border-radius:8px;
+            font-weight:600;
+            position:relative;
+        ">
+            <?= htmlspecialchars($_SESSION['success_message']); ?>
+            <span onclick="this.parentElement.style.display='none'" style="position:absolute;top:8px;right:12px;cursor:pointer;font-weight:bold;">&times;</span>
+        </div>
+        <?php unset($_SESSION['success_message']); ?>
+    <?php endif; ?>
+>>>>>>> Stashed changes
 
     <?php if (isset($_SESSION['success_message'])): ?>
     <div style="
@@ -612,6 +768,7 @@ document.addEventListener("DOMContentLoaded", function () {
         showSlide(currentIndex);
     });
 
+<<<<<<< Updated upstream
     // Optional: auto-slide every 5s
     setInterval(function () {
         currentIndex = (currentIndex + 1) % totalSlides;
@@ -619,6 +776,136 @@ document.addEventListener("DOMContentLoaded", function () {
     }, 5000);
 });
 </script>
+=======
+                nextBtn.addEventListener("click", function () {
+                    currentIndex = (currentIndex + 1) % totalSlides;
+                    showSlide(currentIndex);
+                });
+
+                // Optional: auto-slide every 5 seconds
+                setInterval(function () {
+                    currentIndex = (currentIndex + 1) % totalSlides;
+                    showSlide(currentIndex);
+                }, 5000);
+            }
+
+            // Add event listeners to all redeem buttons
+            const redeemButtons = document.querySelectorAll('.redeem-btn');
+            const userPoints = <?php echo $userPoints; ?>;
+            
+            redeemButtons.forEach(button => {
+                button.addEventListener('click', function(e) {
+                    const voucherPoints = parseInt(this.getAttribute('data-points'));
+                    const voucherTitle = this.getAttribute('data-title');
+                    
+                    if (userPoints < voucherPoints) {
+                        e.preventDefault(); // Prevent navigation to redeem page
+                        
+                        // Show warning message
+                        const warningMessage = document.getElementById('warningMessage');
+                        const warningText = document.getElementById('warningText');
+                        
+                        warningText.textContent = `You don't have enough points to redeem "${voucherTitle}". You need ${voucherPoints} points but only have ${userPoints}.`;
+                        warningMessage.style.display = 'flex';
+                        
+                        // Auto-hide after 5 seconds
+                        setTimeout(() => {
+                            warningMessage.style.display = 'none';
+                        }, 5000);
+                    }
+                });
+            });
+
+            // Handle Add to Cart buttons with popup
+            const addToCartButtons = document.querySelectorAll('a[href*="cart.php?action=add"]');
+            const cartPopup = document.getElementById('cartPopup');
+            const closePopup = document.getElementById('closePopup');
+            const addMoreBtn = document.getElementById('addMoreBtn');
+            const viewCartBtn = document.getElementById('viewCartBtn');
+
+            // Add event listeners to all "ADD TO CART" buttons
+            addToCartButtons.forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault(); // Prevent default link behavior
+                    
+                    // Get the voucher ID from the href
+                    const href = this.getAttribute('href');
+                    const url = new URL(href, window.location.origin);
+                    const voucherId = url.searchParams.get('id');
+                    
+                    // Make AJAX request to add item to cart
+                    const xhr = new XMLHttpRequest();
+                    xhr.open('GET', href, true);
+                    xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+                    xhr.onreadystatechange = function() {
+                        if (xhr.readyState === 4 && xhr.status === 200) {
+                            try {
+                                const response = JSON.parse(xhr.responseText);
+                                if (response.success) {
+                                    // Show the popup
+                                    cartPopup.style.display = 'flex';
+                                    
+                                    // Update cart count in navbar if it exists
+                                    const cartBadge = document.querySelector('.cart-badge');
+                                    if (cartBadge) {
+                                        if (response.cartCount > 0) {
+                                            cartBadge.textContent = response.cartCount > 99 ? '99+' : response.cartCount;
+                                            cartBadge.style.display = 'flex';
+                                        } else {
+                                            cartBadge.style.display = 'none';
+                                        }
+                                    }
+                                }
+                            } catch (e) {
+                                console.error('Error parsing response:', e);
+                            }
+                        }
+                    };
+                    xhr.send();
+                });
+            });
+
+            // Close popup when clicking the X button
+            if (closePopup) {
+                closePopup.addEventListener('click', function() {
+                    cartPopup.style.display = 'none';
+                });
+            }
+
+            // Close popup when clicking "Add more" button
+            if (addMoreBtn) {
+                addMoreBtn.addEventListener('click', function() {
+                    cartPopup.style.display = 'none';
+                });
+            }
+
+            // Navigate to cart when clicking "View Cart" button
+            if (viewCartBtn) {
+                viewCartBtn.addEventListener('click', function() {
+                    window.location.href = 'cart.php';
+                });
+            }
+
+            // Close popup when clicking outside the modal
+            window.addEventListener('click', function(event) {
+                if (event.target === cartPopup) {
+                    cartPopup.style.display = 'none';
+                }
+            });
+        });
+
+        // Auto-hide success message after 5 seconds
+        document.addEventListener("DOMContentLoaded", function() {
+            const successMessage = document.querySelector('[style*="background:#d4edda"]');
+            if (successMessage) {
+                setTimeout(function() {
+                    successMessage.style.display = 'none';
+                }, 5000);
+            }
+        });
+    </script>
+    <?php include 'footer.php'; ?>
+>>>>>>> Stashed changes
 
 </body>
 </html>
