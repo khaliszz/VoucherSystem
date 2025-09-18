@@ -41,7 +41,7 @@ $is_logged_in = isset($_SESSION['user_id']) || isset($_SESSION['user_email']);
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Montserrat:wght@700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary-color: #6a5af9;
+            --primary-color: #4b006e;
             --secondary-color: #d661a8;
             --text-color-dark: #1f2937;
             --text-color-light: #ffffff;

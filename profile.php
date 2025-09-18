@@ -29,7 +29,7 @@ $user = $userStmt->fetch(PDO::FETCH_ASSOC);
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
 
         :root {
-            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --primary-gradient: linear-gradient(#4b006e 100%);
             --button-gradient: linear-gradient(90deg, #8963e8 0%, #6352e7 100%);
             --button-hover-gradient: linear-gradient(90deg, #9a7af0 0%, #7665f1 100%);
             --text-color: #333;
