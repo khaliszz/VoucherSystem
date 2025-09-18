@@ -64,9 +64,19 @@ $user = $userStmt->fetch(PDO::FETCH_ASSOC);
             box-shadow: 0 4px 12px rgba(0,0,0,0.2);
         }
 
-        .profile-info h2 { font-size: 1.8rem; margin-bottom: 5px; }
-        .profile-info p { color: var(--text-secondary-color); margin-bottom: 6px; }
-
+        .profile-info h2 {
+            font-size: 1.8rem;
+            margin: 0 0 6px 0;
+            line-height: 1.3;
+        }
+        .profile-info p {
+            color: var(--text-secondary-color);
+            margin: 4px 0; /* small spacing between email & phone */
+            line-height: 1.3;
+            display: flex;
+            align-items: center; /* keeps icon aligned with text */
+            gap: 6px; /* small space between icon and text */
+        }
         .profile-actions { display: flex; gap: 12px; flex-wrap: wrap; }
         .action-btn {
             padding: 10px 20px; border: none; border-radius: 8px;
