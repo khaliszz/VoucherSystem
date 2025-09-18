@@ -213,6 +213,6 @@ $user = $userStmt->fetch(PDO::FETCH_ASSOC);
 
     </div>
 </main>
-
+<?php include 'footer.php'; ?>
 </body>
 </html>
