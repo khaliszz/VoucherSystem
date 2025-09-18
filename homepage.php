@@ -528,6 +528,68 @@ $cartCount = $cartRow['total'] ?? 0;
             transform: translateY(-2px);
         }
 
+        /* Points Range Filter Dropdown */
+        .points-range-filter {
+            position: relative;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+
+        .filter-dropbtn {
+            background-color: var(--white-color);
+            color: var(--text-color);
+            padding: 10px 16px;
+            font-size: 1rem;
+            border: 2px solid var(--border-color);
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .filter-dropbtn:hover {
+            border-color: #6a5af9;
+            color: #6a5af9;
+        }
+
+        .filter-dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: var(--white-color);
+            min-width: 200px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            z-index: 1;
+            margin-top: 5px;
+            overflow: hidden;
+        }
+
+        .filter-dropdown-content a {
+            color: var(--text-color);
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            transition: background 0.2s ease;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 0.95rem;
+        }
+
+        .filter-dropdown-content a:last-child {
+            border-bottom: none;
+        }
+
+        .filter-dropdown-content a:hover {
+            background-color: #f8f9fa;
+            color: #6a5af9;
+        }
+
+        .points-range-filter.active .filter-dropdown-content {
+            display: block;
+        }
+
         /* Popup Modal Styles */
         .popup-overlay {
             display: none;
@@ -710,13 +772,21 @@ $cartCount = $cartRow['total'] ?? 0;
     <?php endif; ?>
 
     <main>
-        <div class="welcome-section">
-            <h1>Welcome to Voucher Store</h1>
-        </div>
-
         <!-- Search Results Section -->
         <?php if ($hasSearch && !$selectedCategoryId): ?>
             <div class="results-section">
+                <!-- Points Range Filter Dropdown -->
+                <div class="points-range-filter">
+                    <button class="filter-dropbtn">
+                        Filter by Points <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="filter-dropdown-content">
+                        <a href="homepage.php?search=<?php echo urlencode($_GET['search'] ?? ''); ?>&min_points=&max_points=1000">Less than 1000 points</a>
+                        <a href="homepage.php?search=<?php echo urlencode($_GET['search'] ?? ''); ?>&min_points=1000&max_points=4000">1000 - 4000 points</a>
+                        <a href="homepage.php?search=<?php echo urlencode($_GET['search'] ?? ''); ?>&min_points=4000&max_points=">More than 4000 points</a>
+                    </div>
+                </div>
+                
                 <div class="results-header">
                     <h2>Search Results for "<?php echo htmlspecialchars($_GET['search']); ?>"</h2>
                     <span class="results-count"><?php echo count($searchResults); ?> found</span>
@@ -763,6 +833,18 @@ $cartCount = $cartRow['total'] ?? 0;
         <!-- Points Filter Results Section -->
         <?php if (!$hasSearch && $hasPointsFilter && !$selectedCategoryId): ?>
             <div class="results-section">
+                <!-- Points Range Filter Dropdown -->
+                <div class="points-range-filter">
+                    <button class="filter-dropbtn">
+                        Filter by Points <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="filter-dropdown-content">
+                        <a href="homepage.php?min_points=&max_points=1000">Less than 1000 points</a>
+                        <a href="homepage.php?min_points=1000&max_points=4000">1000 - 4000 points</a>
+                        <a href="homepage.php?min_points=4000&max_points=">More than 4000 points</a>
+                    </div>
+                </div>
+                
                 <div class="results-header">
                     <h2>Filtered by Points</h2>
                     <span class="results-count"><?php echo count($pointsResults); ?> found</span>
@@ -807,6 +889,18 @@ $cartCount = $cartRow['total'] ?? 0;
         <!-- Category Results Section -->
         <?php if ($categoryResults !== null): ?>
             <div class="results-section">
+                <!-- Points Range Filter Dropdown -->
+                <div class="points-range-filter">
+                    <button class="filter-dropbtn">
+                        Filter by Points <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="filter-dropdown-content">
+                        <a href="homepage.php?category=<?php echo urlencode($_GET['category']); ?>&min_points=&max_points=1000">Less than 1000 points</a>
+                        <a href="homepage.php?category=<?php echo urlencode($_GET['category']); ?>&min_points=1000&max_points=4000">1000 - 4000 points</a>
+                        <a href="homepage.php?category=<?php echo urlencode($_GET['category']); ?>&min_points=4000&max_points=">More than 4000 points</a>
+                    </div>
+                </div>
+                
                 <div class="results-header">
                     <h2><?php echo ucfirst($_GET['category']); ?> Vouchers</h2>
                     <span class="results-count"><?php echo count($categoryResults); ?> found</span>
@@ -858,6 +952,18 @@ $cartCount = $cartRow['total'] ?? 0;
         <!-- Top Pick Voucher Section (shown when no filters are active) -->
         <?php if (!$hasSearch && !$hasPointsFilter && !$selectedCategoryId): ?>
             <div class="results-section">
+                <!-- Points Range Filter Dropdown -->
+                <div class="points-range-filter">
+                    <button class="filter-dropbtn">
+                        Filter by Points <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="filter-dropdown-content">
+                        <a href="homepage.php?min_points=&max_points=1000">< 1000 points</a>
+                        <a href="homepage.php?min_points=1000&max_points=4000">1000 - 4000 points</a>
+                        <a href="homepage.php?min_points=4000&max_points=">> 4000 points</a>
+                    </div>
+                </div>
+                
                 <div class="results-header">
                     <h2>Top Pick Vouchers</h2>
                     <span class="results-count"><?php echo count($topVouchers); ?> vouchers</span>
@@ -957,6 +1063,25 @@ $cartCount = $cartRow['total'] ?? 0;
                 });
             });
 
+            // Points Range Filter Dropdown functionality
+            const filterDropdowns = document.querySelectorAll('.points-range-filter');
+            filterDropdowns.forEach(dropdown => {
+                const dropbtn = dropdown.querySelector('.filter-dropbtn');
+                
+                if (dropbtn) {
+                    dropbtn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        dropdown.classList.toggle('active');
+                    });
+                    
+                    // Close dropdown when clicking outside
+                    document.addEventListener('click', function(e) {
+                        if (!dropdown.contains(e.target)) {
+                            dropdown.classList.remove('active');
+                        }
+                    });
+                }
+            });
 
             // Handle Add to Cart buttons with popup
             const addToCartButtons = document.querySelectorAll('a[href*="cart.php?action=add"]');
