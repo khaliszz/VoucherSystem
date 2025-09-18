@@ -9,9 +9,16 @@ $catStmt = $conn->prepare($catSql);
 $catStmt->execute();
 $categories = $catStmt->fetchAll(PDO::FETCH_ASSOC);
 
-// ✅ Ensure cart count is available (homepage.php sets it, but default to 0 here)
+// ✅ Ensure cart count is available (homepage.php sets it, but fetch from DB if not set)
 if (!isset($cartCount)) {
     $cartCount = 0;
+    if (isset($_SESSION['user_id'])) {
+        $cartSql = "SELECT SUM(quantity) as total FROM cart_items WHERE user_id = ?";
+        $cartStmt = $conn->prepare($cartSql);
+        $cartStmt->execute([$_SESSION['user_id']]);
+        $cartRow = $cartStmt->fetch(PDO::FETCH_ASSOC);
+        $cartCount = $cartRow['total'] ?? 0;
+    }
 }
 
 // ✅ Fetch user profile image for navbar display
