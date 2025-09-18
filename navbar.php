@@ -109,7 +109,15 @@ if (isset($_SESSION['user_id'])) {
 
         <!-- Profile Button -->
         <a href="profile.php" class="profile-btn">
-            <img src="<?php echo htmlspecialchars($userProfileImage); ?>" alt="Profile" class="profile-img">
-        </a>
+    <?php
+    $img = htmlspecialchars($userProfileImage);
+    $proxy = 'image_proxy.php?url=' . urlencode($img);
+    ?>
+    <img src="<?php echo $img; ?>"
+         alt="Profile"
+         class="profile-img"
+         referrerpolicy="no-referrer"
+         onerror="this.onerror=null; this.src='<?php echo $proxy; ?>';">
+</a>
     </div>
 </header>

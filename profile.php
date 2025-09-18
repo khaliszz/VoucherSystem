@@ -439,16 +439,21 @@ $categories = $catStmt->fetchAll(PDO::FETCH_ASSOC);
 
         <div class="profile-container">
             <div class="profile-header">
-                <?php
-                $profile_image_url = $user['profile_image'] ?? '';
-                if (!empty($profile_image_url)):
+            <?php
+            $profile_image_url = $user['profile_image'] ?? '';
+            if (!empty($profile_image_url)):
+                $img = htmlspecialchars($profile_image_url);
+                $proxy = 'image_proxy.php?url=' . urlencode($profile_image_url);
                 ?>
-                <img src="<?php echo htmlspecialchars($profile_image_url); ?>"
-                alt="Profile Picture" class="profile-image"
-                onerror="this.onerror=null; this.src='./images/default-avatar.png';">
+                <img src="<?php echo $img; ?>"
+                alt="Profile Picture"
+                class="profile-image"
+                referrerpolicy="no-referrer"
+                onerror="this.onerror=null; this.src='<?php echo $proxy; ?>';">
                 <?php else: ?>
                     <img src="./images/default-avatar.png" alt="Profile Picture" class="profile-image">
-                    <?php endif; ?>
+                    <?php endif; 
+                    ?>
 
                 <div class="profile-info">
                     <h2><?php echo htmlspecialchars($user['username'] ?? 'User'); ?></h2>
