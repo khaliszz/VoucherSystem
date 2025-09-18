@@ -51,17 +51,16 @@ if (isset($_SESSION['user_id'])) {
     }
 
     .navbar-top {
-        display: flex;
-        justify-content: space-between;
+        display: grid;
+        grid-template-columns: auto 1fr auto auto auto auto;
         align-items: center;
         padding: 15px 30px;
         border-bottom: 1px solid #f0f0f0;
+        gap: 15px;
     }
 
     .navbar-left {
-        display: flex;
-        align-items: center;
-        gap: 30px;
+        display: contents;
     }
 
     .navbar-left a {
@@ -76,40 +75,126 @@ if (isset($_SESSION['user_id'])) {
         color: #6a5af9;
     }
 
-    .navbar-right {
-        display: flex;
-        align-items: center;
-        gap: 15px;
+    .logo {
+        height: 30px;
+        cursor: pointer;
+        transition: opacity 0.3s ease;
+        border-radius: 4px;
     }
 
-    .navbar-search-container {
-        padding: 15px 30px;
+    .logo:hover {
+        opacity: 0.8;
+    }
+
+    /* Home button - icon only */
+    .home-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
         background: var(--white-color);
+        border: 2px solid var(--border-color);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        color: var(--text-color);
     }
 
-    .search-area {
+    .home-btn:hover {
+        transform: scale(1.05);
+        border-color: #6a5af9;
+        color: #6a5af9;
+        box-shadow: 0 4px 12px rgba(106, 90, 249, 0.2);
+    }
+
+    /* Category Dropdown Styles */
+    .category-dropdown {
+        position: relative;
+        display: inline-block;
+    }
+
+    .category-dropbtn {
+        background-color: var(--white-color);
+        color: var(--text-color);
+        padding: 6px 10px;
+        font-size: 0.85rem;
+        border: 2px solid var(--border-color);
+        border-radius: 18px;
+        cursor: pointer;
+        font-weight: 600;
         display: flex;
         align-items: center;
-        justify-content: space-between;
-        width: 100%;
-        gap: 20px;
+        gap: 5px;
+        transition: all 0.3s ease;
     }
 
+    .category-dropbtn:hover {
+        border-color: #6a5af9;
+        color: #6a5af9;
+    }
+
+    .category-dropdown-content {
+        display: none;
+        position: absolute;
+        background-color: var(--white-color);
+        min-width: 180px;
+        box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+        border-radius: 8px;
+        z-index: 1;
+        margin-top: 5px;
+        overflow: hidden;
+    }
+
+    .category-dropdown-content a {
+        color: var(--text-color);
+        padding: 10px 14px;
+        text-decoration: none;
+        display: block;
+        transition: background 0.2s ease;
+        border-bottom: 1px solid #f0f0f0;
+        font-size: 0.9rem;
+    }
+
+    .category-dropdown-content a:last-child {
+        border-bottom: none;
+    }
+
+    .category-dropdown-content a:hover {
+        background-color: #f8f9fa;
+        color: #6a5af9;
+    }
+
+    .category-dropdown.active .category-dropdown-content {
+        display: block;
+    }
+
+    /* Search bar container */
+    .search-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        position: relative;
+    }
+
+    /* Search bar form */
     .search-form {
         display: flex;
         align-items: center;
-        gap: 12px;
-        flex-grow: 1;
+        width: 100%;
+        max-width: 350px;
     }
 
     .search-input {
         flex: 1;
-        padding: 12px 15px;
+        padding: 8px 10px;
         border: 2px solid #e0e0e0;
-        border-radius: 25px;
-        font-size: 0.95rem;
+        border-radius: 18px;
+        font-size: 0.85rem;
         transition: border-color 0.3s ease;
-        min-width: 200px;
+        padding-right: 35px; /* Space for the search button */
     }
 
     .search-input:focus {
@@ -117,171 +202,49 @@ if (isset($_SESSION['user_id'])) {
         border-color: #6a5af9;
     }
 
-    .points-filter-dropdown {
-        position: relative;
-        display: inline-block;
-    }
-
-    .dropdown-toggle {
-        padding: 12px 20px;
-        border: 2px solid #e0e0e0;
-        border-radius: 25px;
-        background: white;
+    /* Search button - circular inside search bar */
+    .search-btn {
+        background: var(--button-gradient);
+        color: white;
+        border: none;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
         cursor: pointer;
-        font-size: 0.9rem;
-        color: var(--text-color);
         transition: all 0.3s ease;
-        min-width: 150px;
-        text-align: center;
+        font-size: 0.85rem;
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 8px;
-    }
-
-    .dropdown-toggle:hover {
-        border-color: #6a5af9;
-    }
-
-    .dropdown-menu {
-        display: none;
         position: absolute;
-        top: 100%;
-        left: 0;
-        background: white;
-        border: 1px solid #e0e0e0;
-        border-radius: 8px;
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-        min-width: 250px;
-        z-index: 1000;
-        padding: 15px;
-        margin-top: 5px;
-    }
-
-    .dropdown-menu.show {
-        display: block;
-    }
-
-    .points-range-inputs {
-        display: flex;
-        gap: 10px;
-        align-items: center;
-        margin-bottom: 15px;
-    }
-
-    .points-range-inputs input {
-        padding: 8px 12px;
-        border: 1px solid #e0e0e0;
-        border-radius: 5px;
-        width: 80px;
-        font-size: 0.9rem;
-    }
-
-    .quick-filters-dropdown {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-    }
-
-    .quick-filter-link {
-        padding: 8px 12px;
-        text-decoration: none;
-        color: var(--text-color);
-        border-radius: 5px;
-        transition: background 0.3s ease;
-        font-size: 0.85rem;
-    }
-
-    .quick-filter-link:hover {
-        background: #f0f0ff;
-        color: #6a5af9;
-    }
-
-    .search-btn {
-        padding: 12px 25px;
-        border: none;
-        border-radius: 25px;
-        background: var(--button-gradient);
-        color: white;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        font-size: 0.95rem;
-        white-space: nowrap;
+        right: 8px;
     }
 
     .search-btn:hover {
         background: var(--button-hover-gradient);
-        transform: translateY(-2px);
+        transform: scale(1.1);
         box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
     }
 
-    .clear-btn {
-        padding: 10px 20px;
-        border: 2px solid #6a5af9;
-        border-radius: 25px;
-        background: transparent;
-        color: #6a5af9;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        font-size: 0.9rem;
-        text-decoration: none;
-        white-space: nowrap;
-    }
-
-    .clear-btn:hover {
-        background: #6a5af9;
-        color: white;
-    }
-
-    .category-buttons {
-        display: flex;
-        gap: 10px;
-        flex-wrap: wrap;
-        justify-content: center;
-        margin-top: 15px;
-    }
-
-    .category-btn {
-        padding: 8px 15px;
-        border: none;
-        border-radius: 20px;
-        background: var(--button-gradient);
-        color: white;
-        font-weight: 600;
-        cursor: pointer;
-        font-size: 0.85rem;
-        transition: all 0.3s ease;
-        text-decoration: none;
-    }
-
-    .category-btn:hover {
-        background: var(--button-hover-gradient);
-        transform: translateY(-2px);
-    }
-
-    .category-btn.active {
-        background: #4834d4;
-        box-shadow: 0 3px 10px rgba(72, 52, 212, 0.3);
-    }
-
+    /* Points display */
     .user-points-display {
-        font-size: 1rem;
+        font-size: 0.85rem;
         font-weight: 600;
         color: #6a5af9;
         background: linear-gradient(135deg, #f0f0ff 0%, #e6e6ff 100%);
-        padding: 8px 16px;
-        border-radius: 20px;
+        padding: 5px 10px;
+        border-radius: 16px;
         border: 2px solid #6a5af9;
+        white-space: nowrap;
     }
 
+    /* Cart button */
     .navbar-cart-btn {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        width: 45px;
-        height: 45px;
+        width: 40px;
+        height: 40px;
         border-radius: 50%;
         background: var(--white-color);
         border: 2px solid var(--border-color);
@@ -304,22 +267,23 @@ if (isset($_SESSION['user_id'])) {
         background: #ff4757;
         color: white;
         border-radius: 50%;
-        min-width: 20px;
-        height: 20px;
-        padding: 0 5px;
+        min-width: 18px;
+        height: 18px;
+        padding: 0 4px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 0.7rem;
+        font-size: 0.6rem;
         font-weight: 600;
     }
 
+    /* Profile button */
     .profile-btn {
         display: inline-block;
         border-radius: 50%;
         overflow: hidden;
-        width: 45px;
-        height: 45px;
+        width: 40px;
+        height: 40px;
         cursor: pointer;
         transition: transform 0.3s ease;
     }
@@ -333,7 +297,7 @@ if (isset($_SESSION['user_id'])) {
         height: 100%;
         object-fit: cover;
         border-radius: 50%;
-        border: 3px solid var(--white-color);
+        border: 2px solid var(--white-color);
         transition: border-color 0.3s ease;
     }
 
@@ -341,233 +305,295 @@ if (isset($_SESSION['user_id'])) {
         border-color: #6a5af9;
     }
 
-    .search-actions {
-        display: flex;
-        gap: 5px;
-    }
-    
-     /* Add some space to the left of the Home button */
-    .nav-home-link {
-        margin-left: 10px;
-    }
-
-    /* Mobile responsiveness */
+    /* Mobile responsiveness - single row */
     @media (max-width: 992px) {
         .navbar-top {
-            flex-direction: column;
-            gap: 15px;
-            padding: 15px;
+            grid-template-columns: auto 1fr auto auto auto auto;
+            gap: 8px;
+            padding: 12px 15px;
         }
 
-        .search-area {
-            flex-direction: column;
-            align-items: stretch;
-            gap: 15px;
+        .logo {
+            height: 25px;
+        }
+
+        .category-dropbtn {
+            padding: 5px 8px;
+            font-size: 0.8rem;
         }
 
         .search-form {
-            flex-wrap: wrap;
-            justify-content: center;
+            max-width: 250px;
         }
 
-        .navbar-right {
-            justify-content: center;
-            width: 100%;
+        .search-input {
+            padding: 8px 10px;
+            font-size: 0.85rem;
+            padding-right: 35px;
+        }
+
+        .search-btn {
+            width: 25px;
+            height: 25px;
+            font-size: 0.8rem;
+        }
+
+        .user-points-display {
+            font-size: 0.8rem;
+            padding: 4px 8px;
+        }
+
+        .navbar-cart-btn, .profile-btn {
+            width: 35px;
+            height: 35px;
+        }
+
+        .cart-badge {
+            min-width: 16px;
+            height: 16px;
+            font-size: 0.5rem;
+        }
+
+        .profile-img {
+            border: 2px solid var(--white-color);
         }
     }
 
     @media (max-width: 768px) {
-        .navbar-search-container {
-            padding: 10px 15px;
+        .navbar-top {
+            grid-template-columns: auto 1fr auto auto auto auto;
+            gap: 6px;
+            padding: 10px 12px;
+        }
+
+        .logo {
+            height: 22px;
+        }
+
+        .category-dropbtn {
+            padding: 4px 6px;
+            font-size: 0.75rem;
         }
 
         .search-form {
-            flex-direction: column;
-            gap: 10px;
+            max-width: 180px;
         }
 
         .search-input {
-            min-width: 100%;
+            padding: 6px 8px;
+            font-size: 0.8rem;
+            padding-right: 30px;
         }
 
-        .category-buttons {
-            justify-content: center;
+        .search-btn {
+            width: 22px;
+            height: 22px;
+            font-size: 0.75rem;
         }
 
         .user-points-display {
-            font-size: 0.9rem;
-            padding: 6px 12px;
+            font-size: 0.75rem;
+            padding: 3px 6px;
         }
 
-        .search-actions {
-            width: 100%;
-            justify-content: center;
+        .navbar-cart-btn, .profile-btn {
+            width: 32px;
+            height: 32px;
         }
 
-        .search-actions .search-btn,
-        .search-actions .clear-btn {
-            flex: 1;
+        .cart-badge {
+            min-width: 14px;
+            height: 14px;
+            font-size: 0.45rem;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .navbar-top {
+            grid-template-columns: auto 1fr auto auto auto auto;
+            gap: 5px;
+            padding: 8px 10px;
+        }
+
+        .logo {
+            height: 20px;
+        }
+
+        .category-dropbtn {
+            padding: 3px 5px;
+            font-size: 0.7rem;
+        }
+
+        .search-form {
+            max-width: 150px;
+        }
+
+        .search-input {
+            padding: 5px 6px;
+            font-size: 0.75rem;
+            padding-right: 25px;
+        }
+
+        .search-btn {
+            width: 20px;
+            height: 20px;
+            font-size: 0.7rem;
+        }
+
+        .user-points-display {
+            font-size: 0.7rem;
+            padding: 2px 5px;
+        }
+
+        .navbar-cart-btn, .profile-btn {
+            width: 30px;
+            height: 30px;
+        }
+
+        .cart-badge {
+            min-width: 12px;
+            height: 12px;
+            font-size: 0.4rem;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .navbar-top {
+            grid-template-columns: auto 1fr auto auto auto auto;
+            gap: 4px;
+            padding: 6px 8px;
+        }
+
+        .logo {
+            height: 18px;
+        }
+
+        .category-dropbtn {
+            padding: 3px 4px;
+            font-size: 0.65rem;
+        }
+
+        .search-form {
+            max-width: 120px;
+        }
+
+        .search-input {
+            padding: 4px 5px;
+            font-size: 0.7rem;
+            padding-right: 22px;
+        }
+
+        .search-btn {
+            width: 18px;
+            height: 18px;
+            font-size: 0.65rem;
+        }
+
+        .user-points-display {
+            font-size: 0.65rem;
+            padding: 2px 4px;
+        }
+
+        .navbar-cart-btn, .profile-btn, .home-btn {
+            width: 28px;
+            height: 28px;
+        }
+
+        .cart-badge {
+            min-width: 10px;
+            height: 10px;
+            font-size: 0.35rem;
         }
     }
 </style>
 
 <div class="navbar-container">
-    <!-- Top Navigation and Search Section -->
     <div class="navbar-search-container">
         <div class="navbar-top">
-            <div class="navbar-left">
-                <nav>
-                    <a href="homepage.php" class="nav-home-link">
-                     <i class="fa-solid fa-house" style="margin-right: 5px"></i>   Home
-                       </a>
-                    <!-- Removed Category dropdown as requested -->
-                </nav>
-            </div>
-
-            <!-- Search form and category buttons go here -->
-            <div class="search-area">
-                <form method="get" action="homepage.php" class="search-form" id="searchForm">
-                    <input type="hidden" name="category" id="categoryField" value="<?php echo isset($_GET['category']) ? htmlspecialchars($_GET['category']) : ''; ?>">
-
-                    <input type="text" name="search" class="search-input" placeholder="Search vouchers..."
-                           value="<?php echo isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>">
-
-                    <div class="points-filter-dropdown">
-                        <div class="dropdown-toggle" onclick="toggleDropdown()">
-                            <i class="fas fa-filter"></i> Filters by points ▾
-                        </div>
-                        <div class="dropdown-menu" id="pointsDropdown">
-                            <div class="points-range-inputs">
-                                <label>Points:</label>
-                                <input type="number" name="min_points" placeholder="Min" id="minPoints"
-                                       value="<?php echo isset($_GET['min_points']) ? htmlspecialchars($_GET['min_points']) : ''; ?>">
-                                <span>-</span>
-                                <input type="number" name="max_points" placeholder="Max" id="maxPoints"
-                                       value="<?php echo isset($_GET['max_points']) ? htmlspecialchars($_GET['max_points']) : ''; ?>">
-                            </div>
-
-                            <div class="quick-filters-dropdown">
-                                <a href="javascript:void(0)" class="quick-filter-link"
-                                   onclick="setPointRange(500, 1000)">500-1000 Points</a>
-                                <a href="javascript:void(0)" class="quick-filter-link"
-                                   onclick="setPointRange(1001, 2000)">1001-2000 Points</a>
-                                <a href="javascript:void(0)" class="quick-filter-link"
-                                   onclick="setPointRange(2001, 3000)">2001-3000 Points</a>
-                                <a href="javascript:void(0)" class="quick-filter-link"
-                                   onclick="setPointRange(3001, 4000)">3001-4000 Points</a>
-                                <a href="javascript:void(0)" class="quick-filter-link"
-                                   onclick="setPointRange(4001, '')">4000+ Points</a>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="search-actions">
-                        <button type="submit" class="search-btn">Search</button>
-                        <?php
-                        $clearUrl = 'homepage.php';
-                        if (isset($_GET['category']) && !empty($_GET['category'])) {
-                            $clearUrl .= '?category=' . urlencode($_GET['category']);
-                        }
-                        ?>
-                        <a href="<?php echo $clearUrl; ?>" class="clear-btn">Clear</a>
-                    </div>
-                </form>
-
-                <div class="navbar-right">
-                    <!-- User Points Display -->
-                    <div class="user-points-display">
-                        <i class="fas fa-coins"></i> <?php echo htmlspecialchars($userPoints); ?> points
-                    </div>
-
-                    <!-- Cart Button with dynamic badge -->
-                    <a href="cart.php" class="navbar-cart-btn" title="Shopping Cart">
-                        <i class="fas fa-shopping-cart" style="margin-right: 5px" ></i>
-                        <?php if ($cartCount > 0): ?>
-                            <span class="cart-badge"><?= ($cartCount > 99 ? '99+' : $cartCount) ?></span>
-                        <?php endif; ?>
-                    </a>
-
-                    <!-- Profile Button -->
-                    <a href="profile.php" class="profile-btn">
-                      <?php
-                      $img = htmlspecialchars($userProfileImage);
-                      $proxy = 'image_proxy.php?url=' . urlencode($img);
-                      ?>
-                      <img src="<?php echo $img; ?>"
-                           alt="Profile"
-                           class="profile-img"
-                           referrerpolicy="no-referrer"
-                           onerror="this.onerror=null; this.src='<?php echo $proxy; ?>';">
-                  </a>
+            <!-- Column 1: Optima Logo (now functions as home button) -->
+            <a href="homepage.php">
+                <img src="images/optima.png" alt="Optima Logo" class="logo">
+            </a>
+            
+            <!-- Column 2: Category Dropdown -->
+            <div class="category-dropdown">
+                <button class="category-dropbtn">
+                    Category <i class="fas fa-chevron-down"></i>
+                </button>
+                <div class="category-dropdown-content">
+                    <a href="homepage.php?category=fashion">Fashion</a>
+                    <a href="homepage.php?category=food%20and%20beverage">Food and Beverage</a>
+                    <a href="homepage.php?category=travel">Travel</a>
+                    <a href="homepage.php?category=sports">Sports</a>
                 </div>
             </div>
-        </div>
-
-
-        <!-- Category Buttons -->
-        <div class="category-buttons">
-            <?php
-            $currentCategory = isset($_GET['category']) ? $_GET['category'] : '';
-            $categoryNames = ['fashion', 'food and beverage', 'travel', 'sports'];
-
-            foreach ($categoryNames as $catName):
-                $isActive = (strtolower($currentCategory) === strtolower($catName)) ? 'active' : '';
-                $url = 'homepage.php?category=' . urlencode(strtolower($catName));
-
-                // Preserve search and filter parameters
-                if (isset($_GET['search']) && !empty($_GET['search'])) {
-                    $url .= '&search=' . urlencode($_GET['search']);
-                }
-                if (isset($_GET['min_points']) && !empty($_GET['min_points'])) {
-                    $url .= '&min_points=' . urlencode($_GET['min_points']);
-                }
-                if (isset($_GET['max_points']) && !empty($_GET['max_points'])) {
-                    $url .= '&max_points=' . urlencode($_GET['max_points']);
-                }
+            
+            <!-- Column 3: Search Bar -->
+            <div class="search-container">
+                <form method="get" action="homepage.php" class="search-form" id="searchForm">
+                    <input type="hidden" name="category" id="categoryField" value="<?php echo isset($_GET['category']) ? htmlspecialchars($_GET['category']) : ''; ?>">
+                    <input type="text" name="search" class="search-input" placeholder="Search vouchers..."
+                           value="<?php echo isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>">
+                    <button type="submit" class="search-btn">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </form>
+            </div>
+            
+            <!-- Column 4: Points Display -->
+            <div class="user-points-display">
+                <i class="fas fa-coins"></i> <?php echo htmlspecialchars($userPoints); ?> points
+            </div>
+            
+            <!-- Column 5: Cart Button -->
+            <a href="cart.php" class="navbar-cart-btn" title="Shopping Cart">
+                <i class="fas fa-shopping-cart"></i>
+                <?php if ($cartCount > 0): ?>
+                    <span class="cart-badge"><?= ($cartCount > 99 ? '99+' : $cartCount) ?></span>
+                <?php endif; ?>
+            </a>
+            
+            <!-- Column 6: Profile Button -->
+            <a href="profile.php" class="profile-btn">
+                <?php
+                $img = htmlspecialchars($userProfileImage);
+                $proxy = 'image_proxy.php?url=' . urlencode($img);
                 ?>
-                <a href="<?php echo $url; ?>" class="category-btn <?php echo $isActive; ?>">
-                    <?php echo ucwords($catName); ?>
-                </a>
-            <?php endforeach; ?>
+                <img src="<?php echo $img; ?>"
+                     alt="Profile"
+                     class="profile-img"
+                     referrerpolicy="no-referrer"
+                     onerror="this.onerror=null; this.src='<?php echo $proxy; ?>';">
+            </a>
         </div>
     </div>
 </div>
 
 <script>
-    function toggleDropdown() {
-        const dropdown = document.getElementById('pointsDropdown');
-        dropdown.classList.toggle('show');
-    }
-
-    function setPointRange(min, max) {
-        document.getElementById('minPoints').value = min;
-        document.getElementById('maxPoints').value = max;
-        document.getElementById('pointsDropdown').classList.remove('show');
-
-        // Submit the form when a quick filter is selected
-        document.getElementById('searchForm').submit();
-    }
-
-    // Close dropdown when clicking outside
-    document.addEventListener('click', function (event) {
-        const dropdown = document.querySelector('.points-filter-dropdown');
-        if (!dropdown.contains(event.target)) {
-            document.getElementById('pointsDropdown').classList.remove('show');
-        }
-    });
-
-    // Set active category based on URL
+    // Category dropdown functionality
     document.addEventListener('DOMContentLoaded', function () {
+        const dropdown = document.querySelector('.category-dropdown');
+        const dropbtn = document.querySelector('.category-dropbtn');
+        
+        if (dropbtn && dropdown) {
+            dropbtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                dropdown.classList.toggle('active');
+            });
+            
+            // Close dropdown when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!dropdown.contains(e.target)) {
+                    dropdown.classList.remove('active');
+                }
+            });
+        }
+        
+        // Set active category based on URL
         const urlParams = new URLSearchParams(window.location.search);
         const category = urlParams.get('category');
         if (category) {
             document.getElementById('categoryField').value = category;
         }
-
-        // Set points values if they exist in URL
-        const minPoints = urlParams.get('min_points');
-        const maxPoints = urlParams.get('max_points');
-        if (minPoints) document.getElementById('minPoints').value = minPoints;
-        if (maxPoints) document.getElementById('maxPoints').value = maxPoints;
     });
 </script>

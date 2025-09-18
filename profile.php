@@ -428,6 +428,7 @@ $categories = $catStmt->fetchAll(PDO::FETCH_ASSOC);
     </style>
 </head>
 <body>
+<<<<<<< Updated upstream
 
     <main>
         <div class="page-header">
@@ -454,6 +455,9 @@ $categories = $catStmt->fetchAll(PDO::FETCH_ASSOC);
                     <img src="./images/default-avatar.png" alt="Profile Picture" class="profile-image">
                     <?php endif; 
                     ?>
+=======
+<div class="profile-cover"></div>
+>>>>>>> Stashed changes
 
                 <div class="profile-info">
                     <h2><?php echo htmlspecialchars($user['username'] ?? 'User'); ?></h2>
