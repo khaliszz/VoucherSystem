@@ -830,7 +830,7 @@ $cartCount = $cartRow['total'] ?? 0;
             }
         });
     </script>
+    <?php include 'footer.php'; ?>
 
 </body>
-
 </html>

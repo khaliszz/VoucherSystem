@@ -35,30 +35,26 @@ $is_logged_in = isset($_SESSION['user_id']) || isset($_SESSION['user_email']);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Welcome</title>
+    <title>Create Account or Sign In</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Montserrat:wght@700&display=swap" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
-
         :root {
-            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --button-gradient: linear-gradient(90deg, #8963e8 0%, #6352e7 100%);
-            --button-hover-gradient: linear-gradient(90deg, #9a7af0 0%, #7665f1 100%);
-            --text-color: #333;
-            --text-secondary-color: #777;
-            --border-color: #e0e0e0;
-            --background-color: #f4f7fc;
-            --white-color: #ffffff;
-            --error-bg: #f8d7da;
-            --error-text: #721c24;
-            --success-bg: #d4edda;
-            --success-text: #155724;
+            --primary-color: #6a5af9;
+            --secondary-color: #d661a8;
+            --text-color-dark: #1f2937;
+            --text-color-light: #ffffff;
+            --text-color-secondary: #6b7280;
+            --border-color: #e5e7eb;
+            --form-bg-color: #ffffff;
+            --error-bg: #fee2e2;
+            --error-text: #b91c1c;
+            --success-bg: #dcfce7;
+            --success-text: #166534;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
             font-family: 'Poppins', sans-serif;
@@ -66,361 +62,254 @@ $is_logged_in = isset($_SESSION['user_id']) || isset($_SESSION['user_email']);
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            background: var(--background-color);
-            padding: 1rem;
+            background: linear-gradient(110deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            padding: 2rem;
         }
 
-        .auth-wrapper {
+        .main-container {
             width: 100%;
-            max-width: 450px;
-            background: var(--white-color);
-            border-radius: 16px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            max-width: 1100px;
+            display: flex;
+            background-color: var(--form-bg-color);
+            border-radius: 1.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
             overflow: hidden;
-        }
-        
-        .auth-wrapper.dashboard-view {
-             max-width: 550px;
-             text-align: center;
-             padding: 3rem;
-        }
-        
-        .dashboard-view h1 {
-            font-size: 2.5rem;
-            color: var(--text-color);
-            margin-bottom: 0.5rem;
+            animation: fadeIn 0.8s ease-out;
         }
 
-        .dashboard-view p {
-            font-size: 1.2rem;
-            color: var(--text-secondary-color);
-            margin-bottom: 2rem;
-        }
-        
-        .dashboard-view .logout-btn {
-            display: inline-block;
-            padding: 0.8rem 2.5rem;
-            background: var(--button-gradient);
-            color: var(--white-color);
-            border-radius: 50px;
-            text-decoration: none;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-        
-        .dashboard-view .logout-btn:hover {
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-            transform: translateY(-2px);
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.98); }
+            to { opacity: 1; transform: scale(1); }
         }
 
-        .auth-header {
-            background: var(--primary-gradient);
-            color: var(--white-color);
-            padding: 2.5rem;
-            text-align: center;
-        }
-
-        .auth-header h1 {
-            font-size: 2.2rem;
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-        }
-
-        .auth-header p {
-            font-size: 1rem;
-            opacity: 0.9;
-        }
-
-        .auth-body {
-            padding: 2.5rem;
-        }
-
-        .auth-tabs {
+        .welcome-panel {
+            flex-basis: 45%;
+            background-color: var(--primary-color);
+            padding: 5rem;
             display: flex;
-            border-bottom: 1px solid var(--border-color);
-            margin-bottom: 2rem;
-        }
-
-        .auth-tabs .tab {
-            flex: 1;
-            padding: 1rem;
-            text-align: center;
-            font-weight: 600;
-            color: var(--text-secondary-color);
-            cursor: pointer;
-            border-bottom: 3px solid transparent;
-            transition: all 0.3s ease;
-        }
-
-        .auth-tabs .tab.active {
-            color: #6a5af9;
-            border-bottom-color: #6a5af9;
-        }
-
-        .form-panel {
-            display: none;
-        }
-
-        .form-panel.active {
-            display: block;
-        }
-
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-
-        .form-group label {
-            display: block;
-            font-weight: 600;
-            color: var(--text-color);
-            margin-bottom: 0.5rem;
-        }
-
-        .form-group input {
-            width: 100%;
-            padding: 0.8rem 1rem;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            font-size: 1rem;
-            font-family: 'Poppins', sans-serif;
-            transition: border-color 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .form-group input:focus {
-            outline: none;
-            border-color: #6a5af9;
-            box-shadow: 0 0 0 3px rgba(106, 90, 249, 0.2);
-        }
-
-        .form-options {
-            text-align: right;
-            margin-bottom: 1.5rem;
-        }
-
-        .form-options a {
-            color: #6a5af9;
-            text-decoration: none;
-            font-size: 0.9rem;
-            font-weight: 500;
-        }
-
-        .btn-submit {
-            width: 100%;
-            padding: 1rem;
-            border: none;
-            border-radius: 8px;
-            background: var(--button-gradient);
-            color: var(--white-color);
-            font-size: 1.1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .btn-submit:hover {
-            background: var(--button-hover-gradient);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
-        }
-
-        .divider {
-            display: flex;
-            align-items: center;
-            text-align: center;
-            color: var(--text-secondary-color);
-            margin: 2rem 0;
-            font-size: 0.9rem;
-        }
-
-        .divider::before,
-        .divider::after {
-            content: '';
-            flex: 1;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .divider:not(:empty)::before {
-            margin-right: 1em;
-        }
-
-        .divider:not(:empty)::after {
-            margin-left: 1em;
-        }
-
-        .social-login {
-            display: flex;
-            gap: 1rem;
-        }
-
-        .social-btn {
-            flex: 1;
-            display: flex;
-            align-items: center;
+            flex-direction: column;
             justify-content: center;
-            padding: 0.8rem;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            text-decoration: none;
-            color: var(--text-color);
-            font-weight: 500;
-            transition: background-color 0.3s ease;
-        }
-
-        .social-btn:hover {
-            background-color: #f9f9f9;
-        }
-
-        .social-btn img {
-            width: 20px;
-            margin-right: 0.75rem;
-        }
-
-        .message {
-            padding: 1rem;
-            margin-bottom: 1rem;
-            border-radius: 8px;
-            font-size: 0.95rem;
+            color: var(--text-color-light);
             text-align: center;
         }
 
-        .message.error {
-            background-color: var(--error-bg);
-            color: var(--error-text);
+        .welcome-logo {
+            max-width: 350px;
+            margin: 0 auto 3rem;
         }
 
-        .message.success {
-            background-color: var(--success-bg);
-            color: var(--success-text);
+        .welcome-panel h1 {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+        }
+
+        .welcome-panel p {
+            font-size: 1.2rem;
+            line-height: 1.7;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .form-panel-wrapper {
+            flex-basis: 55%;
+            padding: 3rem 4rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            transition: min-height 0.4s ease-in-out;
         }
         
-        /* ========================================= */
-        /*  *** NEW: Mobile Responsiveness Enhancement *** */
-        /* ========================================= */
-        @media (max-width: 500px) {
-            .auth-header, .auth-body {
-                padding: 2rem 1.5rem; /* Reduce side padding */
-            }
-
-            .auth-header h1 {
-                font-size: 2rem;
-            }
-            
-            .dashboard-view {
-                padding: 2rem 1.5rem;
-            }
-            
-            .dashboard-view h1 {
-                font-size: 2rem;
-            }
-            
-            .dashboard-view p {
-                font-size: 1rem;
-            }
+        .form-content-wrapper {
+            width: 100%;
         }
 
+        .form-panel-wrapper h2 {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 2rem;
+            font-weight: 600;
+            color: var(--text-color-dark);
+            margin-bottom: 2rem;
+        }
+
+        .auth-tabs { display: flex; gap: 2rem; margin-bottom: 2rem; border-bottom: 1px solid var(--border-color); }
+        .auth-tabs .tab { padding-bottom: 1rem; font-size: 1.1rem; font-weight: 500; color: var(--text-color-secondary); cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.3s; }
+        .auth-tabs .tab.active { color: var(--primary-color); border-bottom-color: var(--primary-color); }
+        
+        .form-panel { display: none; }
+        .form-panel.active { display: block; animation: fadeInForm 0.5s; }
+        @keyframes fadeInForm { from { opacity: 0; } to { opacity: 1; } }
+        
+        .form-group { margin-bottom: 1.25rem; }
+        .form-group label { display: block; font-weight: 500; color: var(--text-color-dark); margin-bottom: 0.5rem; font-size: 0.9rem; }
+        .form-group input { width: 100%; padding: 0.9rem 1rem; font-size: 1rem; border: 1px solid var(--border-color); border-radius: 0.5rem; transition: border-color 0.3s, box-shadow 0.3s; }
+        .form-group input:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(106, 90, 249, 0.15); }
+
+        .form-options { text-align: right; margin: 0.75rem 0 1.5rem; }
+        .form-options a { color: var(--primary-color); text-decoration: none; font-size: 0.9rem; font-weight: 500; }
+        .form-options a:hover { text-decoration: underline; }
+        
+        .btn { width: 100%; padding: 1rem; font-size: 1rem; font-weight: 500; border-radius: 0.5rem; cursor: pointer; border: none; transition: all 0.3s; }
+        .btn:disabled { background-color: #a399f5; cursor: not-allowed; }
+        .btn-primary { background-color: var(--primary-color); color: white; }
+        .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 16px rgba(106, 90, 249, 0.2); }
+        
+        .divider { text-align: center; color: var(--text-color-secondary); margin: 1.5rem 0; font-size: 0.9rem; }
+        .btn-secondary { background-color: transparent; color: var(--text-color-dark); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; gap: 0.75rem; }
+        .btn-secondary:hover { border-color: #9ca3af; background-color: #f9fafb; }
+        .btn-secondary img { width: 20px; }
+        
+        #password-match-msg { font-size: 0.9rem; color: var(--error-text); margin-top: 0.5rem; display: none; }
+        .message { padding: 1rem; margin-bottom: 1.5rem; border-radius: 0.5rem; font-size: 1rem; text-align: center; }
+        .message.error { background-color: var(--error-bg); color: var(--error-text); }
+        .message.success { background-color: var(--success-bg); color: var(--success-text); }
+
+        @media (max-width: 992px) {
+            body { padding: 0; align-items: flex-start; }
+            .main-container { flex-direction: column; border-radius: 0; box-shadow: none; min-height: 100vh; }
+            .welcome-panel { padding: 4rem 2rem; flex-basis: auto; }
+            .form-panel-wrapper { flex-basis: auto; justify-content: flex-start; padding: 3rem 2rem; flex-grow: 1; }
+        }
     </style>
 </head>
 <body>
-
-    <?php if ($is_logged_in): ?>
-        <div class="auth-wrapper dashboard-view">
-            <h1>Welcome Back!</h1>
-            <p>You are now logged in, <?php echo htmlspecialchars($_SESSION['user_display_name'] ?? $_SESSION['username'] ?? $_SESSION['user_email'] ?? 'User'); ?>.</p>
-            <a href="?action=logout" class="logout-btn">Logout</a>
+    
+    <div class="main-container">
+        
+        <div class="welcome-panel">
+            <img src="images/logo.png" alt="OptimaBank Logo" class="welcome-logo">
+            <h3>We appreciate our customers.</h3>
         </div>
-    <?php else: ?>
-        <div class="auth-wrapper">
-            <header class="auth-header">
-                <h1>Welcome</h1>
-                <p>Access your account or create a new one</p>
-            </header>
-            <main class="auth-body">
+
+        <div class="form-panel-wrapper" id="form-wrapper">
+            <div class="form-content-wrapper" id="form-content">
+                <h2>Welcome !</h2>
                 <div class="auth-tabs">
-                    <div class="tab" id="tab-signin">Sign In</div>
-                    <div class="tab" id="tab-signup">Sign Up</div>
+                    <div class="tab active" data-tab="signin">Sign In</div>
+                    <div class="tab" data-tab="signup">Sign Up</div>
                 </div>
 
-                <?php echo $message; ?>
+                <?php echo $message; // Display success/error messages here ?>
 
-                <!-- Sign In Form -->
-                <div class="form-panel" id="panel-signin">
+                <div id="panel-signin" class="form-panel active">
+                    <!-- Logic from second file: action="login_process.php" -->
                     <form action="login_process.php" method="POST">
                         <div class="form-group">
                             <label for="login-email">Email Address</label>
-                            <input type="email" id="login-email" name="email" required>
+                            <input type="email" id="login-email" name="email" placeholder="name@example.com" required>
                         </div>
                         <div class="form-group">
                             <label for="login-password">Password</label>
-                            <input type="password" id="login-password" name="password" required>
+                            <input type="password" id="login-password" name="password" placeholder="••••••••" required>
                         </div>
                         <div class="form-options">
                             <a href="#">Forgot your password?</a>
                         </div>
-                        <button type="submit" name="login" class="btn-submit">Sign In</button>
+                        <button type="submit" name="login" class="btn btn-primary">Sign In</button>
                     </form>
                 </div>
 
-                <!-- Sign Up Form -->
-                <div class="form-panel" id="panel-signup">
-                    <form action="signup.php" method="POST">
+                <div id="panel-signup" class="form-panel">
+                    <!-- Logic from second file: action="signup.php" -->
+                    <form action="signup.php" method="POST" id="signup-form">
                         <div class="form-group">
                             <label for="signup-username">Username</label>
-                            <input type="text" id="signup-username" name="username" required>
+                            <input type="text" id="signup-username" name="username" placeholder="Choose a username" required>
                         </div>
                         <div class="form-group">
                             <label for="signup-email">Email Address</label>
-                            <input type="email" id="signup-email" name="email" required>
+                            <input type="email" id="signup-email" name="email" placeholder="name@example.com" required>
                         </div>
                         <div class="form-group">
                             <label for="signup-password">Password</label>
-                            <input type="password" id="signup-password" name="password" required>
+                            <input type="password" id="signup-password" name="password" placeholder="Create a strong password" required>
                         </div>
                         <div class="form-group">
                             <label for="signup-confirm-password">Confirm Password</label>
-                            <input type="password" id="signup-confirm-password" name="confirm_password" required>
+                            <input type="password" id="signup-confirm-password" name="confirm_password" placeholder="Confirm your password" required>
+                            <div id="password-match-msg">Passwords do not match.</div>
                         </div>
-                        <button type="submit" class="btn-submit">Create Account</button>
+                        <button type="submit" id="signup-btn" class="btn btn-primary">Create Account</button>
                     </form>
                 </div>
 
-                <div class="divider">or continue with</div>
-                <div class="social-login">
-                    <a href="<?php echo htmlspecialchars($googleLoginUrl); ?>" class="social-btn">
-                        <img src="https://www.vectorlogo.zone/logos/google/google-icon.svg" alt="Google"> Google
-                    </a>
-                </div>
-            </main>
+                <div class="divider">or</div>
+                
+                <!-- Logic from second file: PHP variable for Google login URL -->
+                <a href="<?php echo htmlspecialchars($googleLoginUrl); ?>" style="text-decoration: none;">
+                    <button type="button" class="btn btn-secondary">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google Icon">
+                        Continue with Google
+                    </button>
+                </a>
+            </div>
         </div>
-    <?php endif; ?>
-
+    </div>
+    
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const tabSignin = document.getElementById('tab-signin');
-            if (tabSignin) {
-                const tabSignup = document.getElementById('tab-signup');
-                const panelSignin = document.getElementById('panel-signin');
-                const panelSignup = document.getElementById('panel-signup');
+        document.addEventListener('DOMContentLoaded', function () {
+            const tabs = document.querySelectorAll('.auth-tabs .tab');
+            const panels = document.querySelectorAll('.form-panel');
+            const formWrapper = document.getElementById('form-wrapper');
+            const formContent = document.getElementById('form-content');
 
-                function showPanel(panelToShow) {
-                    panelSignin.classList.remove('active');
-                    panelSignup.classList.remove('active');
-                    tabSignin.classList.remove('active');
-                    tabSignup.classList.remove('active');
-
-                    if (panelToShow === 'signin') {
-                        panelSignin.classList.add('active');
-                        tabSignin.classList.add('active');
-                    } else {
-                        panelSignup.classList.add('active');
-                        tabSignup.classList.add('active');
-                    }
+            function setFrameHeight() {
+                const activePanel = document.querySelector('.form-panel.active');
+                if (activePanel) {
+                    const contentHeight = formContent.scrollHeight;
+                    formWrapper.style.minHeight = `${contentHeight}px`;
                 }
-
-                // Default to Sign In tab
-                showPanel('<?php echo isset($_GET["show"]) && $_GET["show"] === "signup" ? "signup" : "signin"; ?>');
-
-                tabSignin.addEventListener('click', () => showPanel('signin'));
-                tabSignup.addEventListener('click', () => showPanel('signup'));
             }
+            
+            setTimeout(setFrameHeight, 50);
+
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const tabType = tab.dataset.tab;
+                    document.querySelector('.form-panel.active').classList.remove('active');
+                    document.getElementById('panel-' + tabType).classList.add('active');
+                    
+                    document.querySelector('.tab.active').classList.remove('active');
+                    tab.classList.add('active');
+                    setFrameHeight();
+                });
+            });
+            
+            // Logic to switch tab based on URL parameter (e.g., login.php?show=signup)
+            const showParam = new URLSearchParams(window.location.search).get('show');
+            if (showParam === 'signup') {
+                document.querySelector('.tab[data-tab="signup"]').click();
+            }
+
+            // Real-time password validation logic
+            const signupForm = document.getElementById('signup-form');
+            const passwordInput = document.getElementById('signup-password');
+            const confirmPasswordInput = document.getElementById('signup-confirm-password');
+            const passwordMatchMsg = document.getElementById('password-match-msg');
+            const signupBtn = document.getElementById('signup-btn');
+
+            function validatePasswords() {
+                if (passwordInput.value !== confirmPasswordInput.value && confirmPasswordInput.value.length > 0) {
+                    passwordMatchMsg.style.display = 'block';
+                    signupBtn.disabled = true;
+                } else {
+                    passwordMatchMsg.style.display = 'none';
+                    signupBtn.disabled = false;
+                }
+            }
+
+            passwordInput.addEventListener('input', validatePasswords);
+            confirmPasswordInput.addEventListener('input', validatePasswords);
+
+            signupForm.addEventListener('submit', function(event) {
+                if (passwordInput.value !== confirmPasswordInput.value) {
+                    event.preventDefault();
+                    validatePasswords();
+                }
+            });
+            
+            window.addEventListener('resize', setFrameHeight);
         });
     </script>
 </body>
