@@ -24,9 +24,30 @@ if (isset($_GET['action']) && $_GET['action'] == 'add' && isset($_GET['id'])) {
              ->execute([$userId, $voucherId]);
     }
 
-    $_SESSION['success_message'] = "Voucher added to cart ✅";
-    header("Location: homepage.php");
-    exit;
+    // Check if this is an AJAX request
+    if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
+        // Calculate updated cart count
+        $cartCount = 0;
+        $cartSql = "SELECT SUM(quantity) as total FROM cart_items WHERE user_id = ?";
+        $cartStmt = $conn->prepare($cartSql);
+        $cartStmt->execute([$userId]);
+        $cartRow = $cartStmt->fetch(PDO::FETCH_ASSOC);
+        $cartCount = $cartRow['total'] ?? 0;
+        
+        // Return JSON response
+        header('Content-Type: application/json');
+        echo json_encode([
+            'success' => true,
+            'message' => 'Voucher added to cart successfully',
+            'cartCount' => $cartCount
+        ]);
+        exit;
+    } else {
+        // Regular page request - redirect to homepage
+        $_SESSION['success_message'] = "Voucher added to cart ✅";
+        header("Location: homepage.php");
+        exit;
+    }
 }
 
 // Handle quantity update

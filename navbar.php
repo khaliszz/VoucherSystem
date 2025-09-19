@@ -555,9 +555,7 @@ if (isset($_SESSION['user_id'])) {
             <!-- Column 5: Cart Button -->
             <a href="cart.php" class="navbar-cart-btn" title="Shopping Cart">
                 <i class="fas fa-shopping-cart"></i>
-                <?php if ($cartCount > 0): ?>
-                    <span class="cart-badge"><?= ($cartCount > 99 ? '99+' : $cartCount) ?></span>
-                <?php endif; ?>
+                <span class="cart-badge" style="display: <?= $cartCount > 0 ? 'flex' : 'none' ?>"><?= ($cartCount > 99 ? '99+' : $cartCount) ?></span>
             </a>
             
             <!-- Column 6: Profile Button -->

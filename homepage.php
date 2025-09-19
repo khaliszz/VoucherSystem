@@ -1106,13 +1106,16 @@ $cartCount = $cartRow['total'] ?? 0;
                     xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
                     xhr.onreadystatechange = function() {
                         if (xhr.readyState === 4 && xhr.status === 200) {
+                            console.log('AJAX response received:', xhr.responseText);
                             try {
                                 const response = JSON.parse(xhr.responseText);
+                                console.log('Parsed response:', response);
                                 if (response.success) {
                                     // Show the popup
+                                    console.log('Showing popup...');
                                     cartPopup.style.display = 'flex';
                                     
-                                    // Update cart count in navbar if it exists
+                                    // Update cart count in navbar
                                     const cartBadge = document.querySelector('.cart-badge');
                                     if (cartBadge) {
                                         if (response.cartCount > 0) {
@@ -1121,10 +1124,14 @@ $cartCount = $cartRow['total'] ?? 0;
                                         } else {
                                             cartBadge.style.display = 'none';
                                         }
+                                        console.log('Cart badge updated:', cartBadge.textContent, 'Display:', cartBadge.style.display);
+                                    } else {
+                                        console.error('Cart badge element not found!');
                                     }
                                 }
                             } catch (e) {
                                 console.error('Error parsing response:', e);
+                                console.error('Raw response:', xhr.responseText);
                             }
                         }
                     };
@@ -1159,6 +1166,10 @@ $cartCount = $cartRow['total'] ?? 0;
                     cartPopup.style.display = 'none';
                 }
             });
+
+            // Debug: Log popup element to console
+            console.log('Cart popup element:', cartPopup);
+            console.log('Add to cart buttons found:', addToCartButtons.length);
         });
 
         // Auto-hide success message after 5 seconds
