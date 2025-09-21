@@ -403,7 +403,7 @@ foreach ($cartItems as $item) {
         .page-wrapper {
             margin: 0;
             padding: 10px;
-            padding-bottom: 120px;
+            padding-bottom: 120px; /* Space for mobile checkout bar */
         }
         
         .cart-header {
@@ -560,6 +560,7 @@ foreach ($cartItems as $item) {
             font-size: 14px;
         }
         
+
         .quantity a, .back-btn, .mobile-checkout-btn {
             min-height: 32px;
             display: flex;
@@ -578,12 +579,14 @@ foreach ($cartItems as $item) {
         }
     }
     
+
     @media (min-width: 769px) {
         .mobile-checkout-bar {
             display: none;
         }
     }
     
+
     @media (max-width: 480px) {
         .page-wrapper {
             padding: 8px;
@@ -731,9 +734,11 @@ foreach ($cartItems as $item) {
     const selectAll = document.getElementById('selectAll');
     const checkboxes = document.querySelectorAll('.select-item');
     const mobileCheckoutBtn = document.getElementById('mobileCheckoutBtn');
+
     const checkoutBtn = document.getElementById('checkoutBtn');
     const pointsStatus = document.getElementById('pointsStatus');
     const userPoints = <?php echo $userPoints; ?>;
+
 
     function updateTotal() {
         let total = 0;
@@ -759,6 +764,7 @@ foreach ($cartItems as $item) {
         if (mobileSelectedItemsEl) {
             mobileSelectedItemsEl.textContent = selectedCount + ' item' + (selectedCount !== 1 ? 's' : '') + ' selected';
         }
+
 
         // Update points status
         if (pointsStatus) {
@@ -798,6 +804,7 @@ foreach ($cartItems as $item) {
                 mobileCheckoutBtn.classList.add('disabled');
                 mobileCheckoutBtn.style.pointerEvents = 'none';
             }
+
         }
     }
 

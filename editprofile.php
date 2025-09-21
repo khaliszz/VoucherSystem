@@ -10,9 +10,10 @@ if (!isset($_SESSION['user_id'])) {
 // Database connection
 require_once 'connection.php';
 require_once 'cloudinary_upload.php';
+
 // Fetch user details
 $userId = $_SESSION['user_id'];
-$userSql = "SELECT username, email, phone_number, address, profile_image FROM users WHERE user_id = ?";
+$userSql = "SELECT username, email, phone_number, address, profile_image, about_me, points FROM users WHERE user_id = ?";
 $userStmt = $conn->prepare($userSql);
 $userStmt->execute([$userId]);
 $user = $userStmt->fetch(PDO::FETCH_ASSOC);
@@ -23,6 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $phone_number = $_POST['phone_number'] ?? '';
     $address = $_POST['address'] ?? '';
     $profile_image_url = $user['profile_image']; // Default to existing image
+    $about_me = $_POST['about_me'] ?? '';
 
     // Handle image upload if a new file is provided
     if (isset($_FILES['profile_image']) && $_FILES['profile_image']['error'] === UPLOAD_ERR_OK) {
@@ -33,10 +35,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
+    // Check if user is filling in all four items (profile image, phone number, address, and about me) for the first time
+    $pointsAwarded = false;
+    if (!empty($phone_number) && !empty($address) && !empty($about_me) && !empty($profile_image_url)) {
+        // Check if user previously had empty values for these fields
+        if (empty($user['phone_number']) && empty($user['address']) && empty($user['about_me']) && empty($user['profile_image'])) {
+            // Award 1000 points for completing all four items
+            $newPoints = $user['points'] + 1000;
+            $pointsSql = "UPDATE users SET points = ? WHERE user_id = ?";
+            $pointsStmt = $conn->prepare($pointsSql);
+            $pointsStmt->execute([$newPoints, $userId]);
+            $pointsAwarded = true;
+            // Update user data in session
+            $user['points'] = $newPoints;
+        }
+    }
+
     // Update user information including profile_image
-    $updateSql = "UPDATE users SET username = ?, phone_number = ?, address = ?, profile_image = ? WHERE user_id = ?";
+    $updateSql = "UPDATE users SET username = ?, phone_number = ?, address = ?, profile_image = ?, about_me = ? WHERE user_id = ?";
     $updateStmt = $conn->prepare($updateSql);
-    $updateStmt->execute([$username, $phone_number, $address, $profile_image_url, $userId]);
+    $updateStmt->execute([$username, $phone_number, $address, $profile_image_url, $about_me, $userId]);
 
     // Update session username if it changed
     if (!empty($username)) {
@@ -47,6 +65,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $_SESSION['profile_image'] = $profile_image_url;
 
     $showSuccessModal = true;
+    // Pass points awarded information to the modal
+    if (isset($pointsAwarded) && $pointsAwarded) {
+        $showPointsModal = true;
+    }
 }
 ?>
 <!DOCTYPE html>
@@ -473,7 +495,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </style>
 </head>
 <body>
-    <?php include 'navbar.php'; ?>
 
     <main>
         <div class="page-header">
@@ -518,6 +539,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <textarea id="address" name="address" class="form-control textarea"><?php echo htmlspecialchars($user['address'] ?? ''); ?></textarea>
                 </div>
 
+                <div class="form-group">
+                    <label for="about_me">About Me</label>
+                    <textarea id="about_me" name="about_me" class="form-control textarea"><?php echo htmlspecialchars($user['about_me'] ?? ''); ?></textarea>
+                </div>
+
                 <div class="form-actions">
                     <a href="profile.php" class="btn cancel-btn">Cancel</a>
                     <button type="submit" class="btn save-btn">Save Changes</button>
@@ -531,7 +557,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="modal-content">
             <div class="success-icon"></div>
             <h2>Success!</h2>
-            <p>Your profile has been successfully updated!</p>
+            <?php if (isset($showPointsModal) && $showPointsModal): ?>
+                <p>Your profile has been successfully updated!<br><strong>Congratulations! You've earned 1000 points for completing your profile!</strong></p>
+            <?php else: ?>
+                <p>Your profile has been successfully updated!</p>
+            <?php endif; ?>
             <button class="close-modal-btn" onclick="closeModal()">OK</button>
         </div>
     </div>
