@@ -59,6 +59,7 @@ if (!$voucher) {
             background: var(--background-color);
             color: var(--text-color);
             min-height: 100vh;
+            padding-top: 100px;
         }
 
         /* Header - Full Width */
