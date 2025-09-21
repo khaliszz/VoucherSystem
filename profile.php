@@ -17,6 +17,26 @@ $userSql = "SELECT username, email, phone_number, points, about_me, profile_imag
 $userStmt = $conn->prepare($userSql);
 $userStmt->execute([$userId]);
 $user = $userStmt->fetch(PDO::FETCH_ASSOC);
+
+// Fetch top 3 most recent vouchers for this user
+$historySql = "
+    SELECT h.history_id, v.title, h.completed_date, h.expiry_date
+    FROM cart_item_history h
+    JOIN voucher v ON h.voucher_id = v.voucher_id
+    WHERE h.user_id = ?
+    ORDER BY h.completed_date DESC
+    LIMIT 3
+";
+$historyStmt = $conn->prepare($historySql);
+$historyStmt->execute([$userId]);
+$voucherHistory = $historyStmt->fetchAll(PDO::FETCH_ASSOC);
+
+function getVoucherStatus($expiryDate) {
+    $now = new DateTime();
+    $expiry = new DateTime($expiryDate);
+
+    return ($now <= $expiry) ? 'Active' : 'Expired';
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -180,37 +200,30 @@ $user = $userStmt->fetch(PDO::FETCH_ASSOC);
             <div class="points-display"><?php echo htmlspecialchars($user['points']); ?> Points</div>
         </div>
 
-        <div class="section">
+    <div class="section">
     <div class="section-header">
         <h3>Voucher History</h3>
         <a href="voucher_history.php" class="see-more-btn">See More</a>
     </div>
 
     <div class="history-list">
-        <div class="history-item">
-            <div class="history-info">
-                <h4>Free Coffee Voucher</h4>
-                <p>Redeemed on Jan 2, 2025</p>
-            </div>
-            <span class="history-badge badge-used">Used</span>
-        </div>
-        <div class="history-item">
-            <div class="history-info">
-                <h4>10% Off Dining</h4>
-                <p>Redeemed on Feb 15, 2025</p>
-            </div>
-            <span class="history-badge badge-active">Active</span>
-        </div>
-        <div class="history-item">
-            <div class="history-info">
-                <h4>RM20 Shopping Voucher</h4>
-                <p>Expired on Mar 10, 2025</p>
-            </div>
-            <span class="history-badge badge-expired">Expired</span>
-        </div>
-    </div>
-</div>
-
+        <?php if (!empty($voucherHistory)): ?>
+            <?php foreach ($voucherHistory as $voucher): ?>
+                <?php 
+                    $status = getVoucherStatus($voucher['expiry_date']); 
+                    $badgeClass = ($status === 'Active') ? 'badge-active' : 'badge-expired';
+                ?>
+                <div class="history-item">
+                    <div class="history-info">
+                        <h4><?= htmlspecialchars($voucher['title']) ?></h4>
+                        <p>Redeemed on <?= date("M d, Y", strtotime($voucher['completed_date'])) ?></p>
+                    </div>
+                    <span class="history-badge <?= $badgeClass ?>"><?= $status ?></span>
+                </div>
+            <?php endforeach; ?>
+        <?php else: ?>
+            <p>No vouchers redeemed yet.</p>
+        <?php endif; ?>
     </div>
 </main>
 <?php include 'footer.php'; ?>
