@@ -48,6 +48,7 @@ $categoryResults = null;
 $searchResults = [];
 $pointsResults = [];
 $selectedCategoryId = null;
+$showAll = false; // all vouchers
 
 // Check if we have a category selected
 if (isset($_GET['category']) && !empty($_GET['category'])) {
@@ -55,6 +56,15 @@ if (isset($_GET['category']) && !empty($_GET['category'])) {
     if (isset($categoryMap[$catKey])) {
         $selectedCategoryId = $categoryMap[$catKey];
     }
+}
+
+// Check if show_all is requested
+if (isset($_GET['show_all']) && $_GET['show_all'] == 1) {
+    $showAll = true;
+    $sql = "SELECT voucher_id, title, image, points, description FROM voucher ORDER BY voucher_id DESC";
+    $stmt = $conn->prepare($sql);
+    $stmt->execute();
+    $allResults = $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
 // Check if we have search term or points filter
@@ -107,6 +117,7 @@ if ($hasSearch || $hasPointsFilter || $selectedCategoryId) {
         $pointsResults = $results;
     }
 }
+
 
 // ✅ Fetch promotions
 $promoSql = "SELECT promote_id, title, image, descriptions FROM promotion";
@@ -886,6 +897,46 @@ $cartCount = $cartRow['total'] ?? 0;
             </div>
         <?php endif; ?>
 
+
+        <!-- All Vouchers Section -->
+<?php if ($showAll): ?>
+    <div class="results-section">
+        <div class="results-header">
+            <h2>All Vouchers</h2>
+            <span class="results-count"><?php echo count($allResults); ?> found</span>
+        </div>
+        <div class="voucher-grid">
+            <?php if (!empty($allResults)): ?>
+                <?php foreach ($allResults as $voucher): ?>
+                    <div class="voucher-card">
+                        <a href="voucher_details.php?id=<?php echo $voucher['voucher_id']; ?>" class="image-link">
+                            <img src="<?php echo htmlspecialchars($voucher['image']); ?>" alt="<?php echo htmlspecialchars($voucher['title']); ?>">
+                        </a>
+                        <p><?php echo htmlspecialchars($voucher['title']); ?></p>
+                        <div class="points-display">
+                            <?php echo htmlspecialchars($voucher['points']); ?> Points
+                        </div>
+                        <div class="button-container">
+                            <a href="redeem.php?id=<?php echo $voucher['voucher_id']; ?>" 
+                               class="btn redeem-btn" 
+                               data-points="<?php echo $voucher['points']; ?>" 
+                               data-title="<?php echo htmlspecialchars($voucher['title']); ?>">
+                               REDEEM NOW
+                            </a>
+                            <a href="cart.php?action=add&id=<?= $voucher['voucher_id']; ?>" class="btn">ADD TO CART</a>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            <?php else: ?>
+                <div class="no-results">
+                    <h3>No vouchers available</h3>
+                    <p>Please check back later.</p>
+                </div>
+            <?php endif; ?>
+        </div>
+    </div>
+<?php endif; ?>
+
         <!-- Category Results Section -->
         <?php if ($categoryResults !== null): ?>
             <div class="results-section">
@@ -958,6 +1009,7 @@ $cartCount = $cartRow['total'] ?? 0;
                         Filter by Points <i class="fas fa-chevron-down"></i>
                     </button>
                     <div class="filter-dropdown-content">
+                        <a href="homepage.php?show_all=1">All Vouchers</a>
                         <a href="homepage.php?min_points=&max_points=1000">< 1000 points</a>
                         <a href="homepage.php?min_points=1000&max_points=4000">1000 - 4000 points</a>
                         <a href="homepage.php?min_points=4000&max_points=">> 4000 points</a>
