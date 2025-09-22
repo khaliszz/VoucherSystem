@@ -822,9 +822,10 @@ $cartCount = $cartRow['total'] ?? 0;
                                     <?php echo htmlspecialchars($voucher['points']); ?> Points
                                 </div>
                                 <div class="button-container">
-                                    <a href="redeem.php?id=<?php echo $voucher['voucher_id']; ?>" class="btn redeem-btn" 
-                                       data-points="<?php echo $voucher['points']; ?>" 
-                                       data-title="<?php echo htmlspecialchars($voucher['title']); ?>">
+                                    <a href="process_redeem.php?id=<?php echo $voucher['voucher_id']; ?>"
+                                        class="btn redeem-btn"
+                                        data-points="<?php echo $voucher['points']; ?>"
+                                        data-title="<?php echo htmlspecialchars($voucher['title']); ?>">
                                         REDEEM NOW
                                     </a>
                                     <a href="cart.php?action=add&id=<?= $voucher['voucher_id']; ?>" class="btn">ADD TO CART</a>
@@ -877,14 +878,12 @@ $cartCount = $cartRow['total'] ?? 0;
                                 <div class="points-display">
                                     <?php echo htmlspecialchars($voucher['points']); ?> Points
                                 </div>
-                                <div class="button-container">
-                                    <a href="redeem.php?id=<?php echo $voucher['voucher_id']; ?>" class="btn redeem-btn" 
-                                       data-points="<?php echo $voucher['points']; ?>" 
-                                       data-title="<?php echo htmlspecialchars($voucher['title']); ?>">
-                                        REDEEM NOW
-                                    </a>
-                                    <a href="cart.php?action=add&id=<?= $voucher['voucher_id']; ?>" class="btn">ADD TO CART</a>
-                                </div>
+                                <a href="process_redeem.php?id=<?php echo $voucher['voucher_id']; ?>"
+                                    class="btn redeem-btn"
+                                    data-points="<?php echo $voucher['points']; ?>"
+                                    data-title="<?php echo htmlspecialchars($voucher['title']); ?>">
+                                    REDEEM NOW
+                                </a>
                             </div>
                         <?php endforeach; ?>
                     <?php else: ?>
@@ -917,11 +916,11 @@ $cartCount = $cartRow['total'] ?? 0;
                             <?php echo htmlspecialchars($voucher['points']); ?> Points
                         </div>
                         <div class="button-container">
-                            <a href="redeem.php?id=<?php echo $voucher['voucher_id']; ?>" 
-                               class="btn redeem-btn" 
-                               data-points="<?php echo $voucher['points']; ?>" 
-                               data-title="<?php echo htmlspecialchars($voucher['title']); ?>">
-                               REDEEM NOW
+                            <a href="process_redeem.php?id=<?php echo $voucher['voucher_id']; ?>"
+                                class="btn redeem-btn"
+                                data-points="<?php echo $voucher['points']; ?>"
+                                data-title="<?php echo htmlspecialchars($voucher['title']); ?>">
+                                REDEEM NOW
                             </a>
                             <a href="cart.php?action=add&id=<?= $voucher['voucher_id']; ?>" class="btn">ADD TO CART</a>
                         </div>
@@ -981,9 +980,10 @@ $cartCount = $cartRow['total'] ?? 0;
                                     <?php echo htmlspecialchars($voucher['points']); ?> Points
                                 </div>
                                 <div class="button-container">
-                                    <a href="redeem.php?id=<?php echo $voucher['voucher_id']; ?>" class="btn redeem-btn" 
-                                       data-points="<?php echo $voucher['points']; ?>" 
-                                       data-title="<?php echo htmlspecialchars($voucher['title']); ?>">
+                                    <a href="process_redeem.php?id=<?php echo $voucher['voucher_id']; ?>"
+                                        class="btn redeem-btn"
+                                        data-points="<?php echo $voucher['points']; ?>"
+                                        data-title="<?php echo htmlspecialchars($voucher['title']); ?>">
                                         REDEEM NOW
                                     </a>
                                     <a href="cart.php?action=add&id=<?= $voucher['voucher_id']; ?>" class="btn">ADD TO CART</a>
@@ -1033,9 +1033,10 @@ $cartCount = $cartRow['total'] ?? 0;
                                 </div>
                                 <small>Total Redeemed: <?php echo $voucher['total_quantity']; ?></small>
                                 <div class="button-container">
-                                    <a href="redeem.php?id=<?php echo $voucher['voucher_id']; ?>" class="btn redeem-btn" 
-                                       data-points="<?php echo $voucher['points']; ?>" 
-                                       data-title="<?php echo htmlspecialchars($voucher['title']); ?>">
+                                    <a href="process_redeem.php?id=<?php echo $voucher['voucher_id']; ?>"
+                                        class="btn redeem-btn"
+                                        data-points="<?php echo $voucher['points']; ?>"
+                                        data-title="<?php echo htmlspecialchars($voucher['title']); ?>">
                                         REDEEM NOW
                                     </a>
                                     <a href="cart.php?action=add&id=<?= $voucher['voucher_id']; ?>" class="btn">ADD TO CART</a>

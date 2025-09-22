@@ -30,13 +30,15 @@ if (empty($checkoutItems)) {
 
 // Fetch voucher details
 $placeholders = implode(',', array_fill(0, count($checkoutItems), '?'));
-$sql = "SELECT v.voucher_id, v.title, v.image, v.points, c.quantity 
-        FROM voucher v 
-        JOIN cart_items c ON v.voucher_id = c.voucher_id
-        WHERE c.user_id=? AND v.voucher_id IN ($placeholders)";
+$sql = "SELECT v.voucher_id, v.title, v.image, v.points, 
+        COALESCE(c.quantity, 1) as quantity
+        FROM voucher v
+        LEFT JOIN cart_items c ON v.voucher_id = c.voucher_id AND c.user_id=?
+        WHERE v.voucher_id IN ($placeholders)";
 $stmt = $conn->prepare($sql);
 $stmt->execute(array_merge([$userId], $checkoutItems));
 $vouchers = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
 
 // Calculate totals
 $totalPoints = 0;

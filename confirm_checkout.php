@@ -15,42 +15,54 @@ $stmt->execute([$userId]);
 $user = $stmt->fetch(PDO::FETCH_ASSOC);
 $userPoints = $user['points'] ?? 0;
 
-// Fetch all items from cart
-$sql = "
-    SELECT c.voucher_id, c.quantity, v.points
-    FROM cart_items c
-    JOIN voucher v ON c.voucher_id = v.voucher_id
-    WHERE c.user_id = ?
-";
-$stmt = $conn->prepare($sql);
-$stmt->execute([$userId]);
-$cartItems = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-if (empty($cartItems)) {
-    $_SESSION['error_message'] = "No items in cart.";
+// ✅ Get voucher IDs from POST (checkout form)
+if (!isset($_POST['items']) || empty($_POST['items'])) {
+    $_SESSION['error_message'] = "No items selected for checkout.";
     header("Location: cart.php");
     exit;
 }
 
-// Calculate total required points
+$itemIds = explode(',', $_POST['items']);
+$placeholders = implode(',', array_fill(0, count($itemIds), '?'));
+
+// ✅ Fetch vouchers (works for both Cart + Redeem Now)
+$sql = "
+    SELECT v.voucher_id, v.points, COALESCE(c.quantity, 1) AS quantity
+    FROM voucher v
+    LEFT JOIN cart_items c 
+        ON v.voucher_id = c.voucher_id AND c.user_id = ?
+    WHERE v.voucher_id IN ($placeholders)
+";
+$stmt = $conn->prepare($sql);
+$stmt->execute(array_merge([$userId], $itemIds));
+$cartItems = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// ✅ Check empty
+if (empty($cartItems)) {
+    $_SESSION['error_message'] = "No valid items found for checkout.";
+    header("Location: cart.php");
+    exit;
+}
+
+// ✅ Calculate total required points
 $totalPoints = 0;
 foreach ($cartItems as $item) {
     $totalPoints += $item['points'] * $item['quantity'];
 }
 
-// Check if user has enough points
+// ✅ Check if user has enough points
 if ($userPoints < $totalPoints) {
     $_SESSION['error_message'] = "Not enough points to redeem.";
     header("Location: checkout.php");
     exit;
 }
 
-// Deduct points
+// ✅ Deduct points
 $newPoints = $userPoints - $totalPoints;
 $updatePoints = $conn->prepare("UPDATE users SET points=? WHERE user_id=?");
 $updatePoints->execute([$newPoints, $userId]);
 
-// Move items to history
+// ✅ Move items to history
 $historyIds = [];
 $insertHistory = $conn->prepare("
     INSERT INTO cart_item_history (voucher_id, user_id, quantity, completed_date, expiry_date) 
@@ -58,16 +70,15 @@ $insertHistory = $conn->prepare("
 ");
 foreach ($cartItems as $item) {
     $insertHistory->execute([$item['voucher_id'], $userId, $item['quantity']]);
-    $historyIds[] = $conn->lastInsertId(); // ✅ capture history_id
+    $historyIds[] = $conn->lastInsertId(); // capture history_id
 }
-
 $_SESSION['recent_history_ids'] = $historyIds;
 
-// Clear cart
+// ✅ Clear cart (safe, even if empty for Redeem Now)
 $clearCart = $conn->prepare("DELETE FROM cart_items WHERE user_id=?");
 $clearCart->execute([$userId]);
 
-// Get latest expiry date for this user’s vouchers
+// ✅ Get latest expiry date
 $expiryStmt = $conn->prepare("
     SELECT MAX(expiry_date) as expiry_date 
     FROM cart_item_history 
@@ -78,7 +89,7 @@ $expiryStmt->execute([$userId]);
 $expiry = $expiryStmt->fetch(PDO::FETCH_ASSOC);
 $expiryDate = $expiry['expiry_date'] ?? null;
 
-// Show success popup
+// ✅ Show success popup
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -105,7 +116,6 @@ $expiryDate = $expiry['expiry_date'] ?? null;
             box-shadow:0 6px 25px rgba(0,0,0,0.25);
             position:relative;
         }
-        /* Close button (X) */
         .close-btn {
             position:absolute;
             top:12px;
@@ -120,7 +130,6 @@ $expiryDate = $expiry['expiry_date'] ?? null;
             color:#e60000;
             transform: scale(1.2);
         }
-        /* Success Icon */
         .success-icon {
             width:70px;
             height:70px;
@@ -135,7 +144,6 @@ $expiryDate = $expiry['expiry_date'] ?? null;
             color:#fff;
             font-size:32px;
         }
-        /* Text */
         .modal h2 {
             margin:10px 0 15px 0;
             color:#28a745;
@@ -145,7 +153,6 @@ $expiryDate = $expiry['expiry_date'] ?? null;
             margin:6px 0;
             color:#333;
         }
-        /* Button */
         .download-btn {
             display:inline-block;
             margin-top:15px;
@@ -166,11 +173,9 @@ $expiryDate = $expiry['expiry_date'] ?? null;
 <body>
     <div class="modal">
         <span class="close-btn" onclick="window.location.href='homepage.php'">&times;</span>
-
         <div class="success-icon">
             <i class="fas fa-check"></i>
         </div>
-
         <h2>Voucher Redeemed Successfully</h2>
         <p>Remember to use this voucher by <strong><?= htmlspecialchars(date("d F Y", strtotime($expiryDate))) ?></strong>.</p>
         <p>Your new balance: <strong><?= htmlspecialchars($newPoints) ?> points</strong></p>
@@ -178,4 +183,3 @@ $expiryDate = $expiry['expiry_date'] ?? null;
     </div>
 </body>
 </html>
-
