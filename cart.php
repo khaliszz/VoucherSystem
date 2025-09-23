@@ -9,6 +9,13 @@ if (!isset($_SESSION['user_id'])) {
 
 $userId = $_SESSION['user_id'];
 
+// Fetch user points
+$userSql = "SELECT points FROM users WHERE user_id = ?";
+$userStmt = $conn->prepare($userSql);
+$userStmt->execute([$userId]);
+$user = $userStmt->fetch(PDO::FETCH_ASSOC);
+$userPoints = $user['points'] ?? 0; // Default to 0 if no points
+
 // Handle add to cart
 if (isset($_GET['action']) && $_GET['action'] == 'add' && isset($_GET['id'])) {
     $voucherId = intval($_GET['id']);
@@ -24,9 +31,30 @@ if (isset($_GET['action']) && $_GET['action'] == 'add' && isset($_GET['id'])) {
              ->execute([$userId, $voucherId]);
     }
 
-    $_SESSION['success_message'] = "Voucher added to cart ✅";
-    header("Location: homepage.php");
-    exit;
+    // Check if this is an AJAX request
+    if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
+        // Calculate updated cart count
+        $cartCount = 0;
+        $cartSql = "SELECT SUM(quantity) as total FROM cart_items WHERE user_id = ?";
+        $cartStmt = $conn->prepare($cartSql);
+        $cartStmt->execute([$userId]);
+        $cartRow = $cartStmt->fetch(PDO::FETCH_ASSOC);
+        $cartCount = $cartRow['total'] ?? 0;
+        
+        // Return JSON response
+        header('Content-Type: application/json');
+        echo json_encode([
+            'success' => true,
+            'message' => 'Voucher added to cart successfully',
+            'cartCount' => $cartCount
+        ]);
+        exit;
+    } else {
+        // Regular page request - redirect to homepage
+        $_SESSION['success_message'] = "Voucher added to cart ✅";
+        header("Location: homepage.php");
+        exit;
+    }
 }
 
 // Handle quantity update
@@ -95,6 +123,7 @@ foreach ($cartItems as $item) {
         margin: 40px auto;
         padding: 20px;
     }
+    
     /* Header */
     .cart-header {
         display: flex;
@@ -106,10 +135,11 @@ foreach ($cartItems as $item) {
         border-radius: 12px;
         color: #fff;
         box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-        position: sticky;    /* stick header */
+        position: sticky;
         top: 0;
         z-index: 1000;
     }
+    
     .cart-title {
         font-size: 1.2rem;
         font-weight: 700;
@@ -236,7 +266,7 @@ foreach ($cartItems as $item) {
     /* Sticky Select All / Clear Cart */
     .cart-header-box {
         position: sticky;
-        top: 70px;   /* below main header */
+        top: 70px;
         z-index: 999;
     }
     .cart-header-box label {
@@ -294,6 +324,42 @@ foreach ($cartItems as $item) {
         color:#333;
         margin: 10px 0;
     }
+    
+    /* Points comparison in order summary */
+    .points-comparison {
+        background: #f8f9ff;
+        padding: 15px;
+        border-radius: 8px;
+        margin: 15px 0;
+        border-left: 4px solid #6a11cb;
+    }
+    
+    .available-points {
+        font-size: 14px;
+        color: #666;
+        margin-bottom: 8px;
+    }
+    
+    .points-status {
+        font-size: 16px;
+        font-weight: bold;
+        padding: 8px 12px;
+        border-radius: 6px;
+        margin: 10px 0;
+    }
+    
+    .points-sufficient {
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
+    
+    .points-insufficient {
+        background: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+    
     .checkout-btn {
         display:inline-block;
         padding:12px 25px;
@@ -309,6 +375,12 @@ foreach ($cartItems as $item) {
         box-shadow: 0 3px 8px rgba(0,0,0,0.1);
     }
     .checkout-btn:hover { opacity:0.85; }
+    
+    .checkout-btn.disabled {
+        background: #ccc;
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
 
     /* Empty cart */
     .empty-cart {
@@ -349,7 +421,6 @@ foreach ($cartItems as $item) {
             font-size: 14px;
         }
         
-        /* Stack container vertically on mobile */
         .container {
             flex-direction: column;
             gap: 15px;
@@ -359,7 +430,6 @@ foreach ($cartItems as $item) {
             flex: none;
         }
         
-        /* Mobile cart items */
         .cart-item, .cart-header-box {
             display: flex;
             flex-direction: row;
@@ -461,17 +531,17 @@ foreach ($cartItems as $item) {
             opacity: 0.85;
         }
         
-        .mobile-checkout-btn:disabled {
+        .mobile-checkout-btn:disabled,
+        .mobile-checkout-btn.disabled {
             background: #ccc;
             cursor: not-allowed;
+            opacity: 0.6;
         }
         
-        /* Hide desktop order summary on mobile */
         .order-summary {
             display: none;
         }
         
-        /* Mobile select all adjustments */
         .cart-header-box {
             position: static;
             top: auto;
@@ -490,7 +560,7 @@ foreach ($cartItems as $item) {
             font-size: 14px;
         }
         
-        /* Touch-friendly buttons */
+
         .quantity a, .back-btn, .mobile-checkout-btn {
             min-height: 32px;
             display: flex;
@@ -509,14 +579,14 @@ foreach ($cartItems as $item) {
         }
     }
     
-    /* Hide mobile checkout bar on desktop */
+
     @media (min-width: 769px) {
         .mobile-checkout-bar {
             display: none;
         }
     }
     
-    /* Small mobile adjustments */
+
     @media (max-width: 480px) {
         .page-wrapper {
             padding: 8px;
@@ -632,8 +702,17 @@ foreach ($cartItems as $item) {
 
         <div class="order-summary">
             <h3>Order Summary</h3>
-            <p>Total Points: <strong id="totalPoints">0</strong></p>
-            <a href="checkout.php" class="checkout-btn">Checkout</a>
+            <div class="points-comparison">
+                <div class="available-points">Available: <?php echo $userPoints; ?> Points</div>
+                <p>Selected Total: <strong id="totalPoints">0</strong> Points</p>
+                <div id="pointsStatus" class="points-status points-sufficient" style="display: none;">
+                    You have sufficient points!
+                </div>
+            </div>
+            <form id="checkoutForm" action="checkout.php" method="post">
+                <input type="hidden" name="items" id="checkoutItems">
+                <button type="submit" class="checkout-btn" id="checkoutBtn">Checkout</button>
+            </form>
         </div>
     </div>
 
@@ -645,7 +724,10 @@ foreach ($cartItems as $item) {
                 <div class="mobile-checkout-total" id="mobileTotalPoints">0 Points</div>
                 <div class="mobile-checkout-items" id="mobileSelectedItems">0 items selected</div>
             </div>
-            <a href="checkout.php" class="mobile-checkout-btn" id="mobileCheckoutBtn">Checkout</a>
+            <form id="mobileCheckoutForm" action="checkout.php" method="post">
+                <input type="hidden" name="items" id="mobileCheckoutItems">
+                <button type="submit" class="mobile-checkout-btn" id="mobileCheckoutBtn">Checkout</button>
+            </form>
         </div>
     </div>
     <?php endif; ?>
@@ -658,6 +740,11 @@ foreach ($cartItems as $item) {
     const selectAll = document.getElementById('selectAll');
     const checkboxes = document.querySelectorAll('.select-item');
     const mobileCheckoutBtn = document.getElementById('mobileCheckoutBtn');
+
+    const checkoutBtn = document.getElementById('checkoutBtn');
+    const pointsStatus = document.getElementById('pointsStatus');
+    const userPoints = <?php echo $userPoints; ?>;
+
 
     function updateTotal() {
         let total = 0;
@@ -684,10 +771,46 @@ foreach ($cartItems as $item) {
             mobileSelectedItemsEl.textContent = selectedCount + ' item' + (selectedCount !== 1 ? 's' : '') + ' selected';
         }
 
-        // Update mobile checkout button state
+
+        // Update points status
+        if (pointsStatus) {
+            if (selectedCount > 0) {
+                pointsStatus.style.display = 'block';
+                if (total <= userPoints) {
+                    pointsStatus.textContent = 'You have sufficient points!';
+                    pointsStatus.className = 'points-status points-sufficient';
+                } else {
+                    const needed = total - userPoints;
+                    pointsStatus.textContent = `You need ${needed} more points`;
+                    pointsStatus.className = 'points-status points-insufficient';
+                }
+            } else {
+                pointsStatus.style.display = 'none';
+            }
+        }
+
+        // Update checkout button states
+        const canCheckout = selectedCount > 0 && total <= userPoints;
+        
+        if (checkoutBtn) {
+            if (canCheckout) {
+                checkoutBtn.classList.remove('disabled');
+                checkoutBtn.style.pointerEvents = 'auto';
+            } else {
+                checkoutBtn.classList.add('disabled');
+                checkoutBtn.style.pointerEvents = 'none';
+            }
+        }
+
         if (mobileCheckoutBtn) {
-            mobileCheckoutBtn.disabled = selectedCount === 0;
-            mobileCheckoutBtn.style.opacity = selectedCount > 0 ? '1' : '0.6';
+            if (canCheckout) {
+                mobileCheckoutBtn.classList.remove('disabled');
+                mobileCheckoutBtn.style.pointerEvents = 'auto';
+            } else {
+                mobileCheckoutBtn.classList.add('disabled');
+                mobileCheckoutBtn.style.pointerEvents = 'none';
+            }
+
         }
     }
 
@@ -696,11 +819,12 @@ foreach ($cartItems as $item) {
         document.querySelectorAll('.select-item:checked').forEach(cb => {
             checkedIds.push(cb.closest('.cart-item').dataset.id);
         });
-        localStorage.setItem('checkedItems', JSON.stringify(checkedIds));
+        // Note: Using in-memory storage for session persistence
+        window.checkedItems = checkedIds;
     }
 
     function restoreChecked() {
-        let checkedIds = JSON.parse(localStorage.getItem('checkedItems') || '[]');
+        let checkedIds = window.checkedItems || [];
         document.querySelectorAll('.cart-item').forEach(item => {
             if (checkedIds.includes(item.dataset.id)) {
                 item.querySelector('.select-item').checked = true;
@@ -730,17 +854,43 @@ foreach ($cartItems as $item) {
         });
     });
 
-    // Mobile checkout validation
-    if (mobileCheckoutBtn) {
-        mobileCheckoutBtn.addEventListener('click', function(e) {
-            const selectedCount = document.querySelectorAll('.select-item:checked').length;
-            if (selectedCount === 0) {
-                e.preventDefault();
-                alert('Please select at least one item to checkout');
-                return;
-            }
-        });
+    // Checkout validation
+    function validateCheckout(e, formId, inputId) {
+    e.preventDefault();
+
+    const selected = [];
+    let total = 0;
+    document.querySelectorAll('.select-item:checked').forEach(cb => {
+        const item = cb.closest('.cart-item');
+        const points = parseInt(item.dataset.points);
+        const qty = parseInt(item.dataset.qty);
+        selected.push(item.dataset.id);
+        total += points * qty;
+    });
+
+    if (selected.length === 0) {
+        alert('Please select at least one item to checkout');
+        return false;
     }
+
+    if (total > userPoints) {
+        alert(`Not enough points. You need ${total - userPoints} more points.`);
+        return false;
+    }
+
+    // ✅ Store selected IDs in hidden input & submit form
+    document.getElementById(inputId).value = selected.join(',');
+    document.getElementById(formId).submit();
+    return true;
+    }
+    
+    document.querySelector('#checkoutForm button').addEventListener('click', function(e) {
+    validateCheckout(e, 'checkoutForm', 'checkoutItems');
+    });
+
+    document.querySelector('#mobileCheckoutForm button').addEventListener('click', function(e) {
+    validateCheckout(e, 'mobileCheckoutForm', 'mobileCheckoutItems');
+    });
 
     restoreChecked();
 </script>

@@ -9,9 +9,16 @@ $catStmt = $conn->prepare($catSql);
 $catStmt->execute();
 $categories = $catStmt->fetchAll(PDO::FETCH_ASSOC);
 
-// ✅ Ensure cart count is available (homepage.php sets it, but default to 0 here)
+// ✅ Ensure cart count is available (homepage.php sets it, but fetch from DB if not set)
 if (!isset($cartCount)) {
     $cartCount = 0;
+    if (isset($_SESSION['user_id'])) {
+        $cartSql = "SELECT SUM(quantity) as total FROM cart_items WHERE user_id = ?";
+        $cartStmt = $conn->prepare($cartSql);
+        $cartStmt->execute([$_SESSION['user_id']]);
+        $cartRow = $cartStmt->fetch(PDO::FETCH_ASSOC);
+        $cartCount = $cartRow['total'] ?? 0;
+    }
 }
 
 // ✅ Fetch user profile image for navbar display
@@ -521,6 +528,7 @@ if (isset($_SESSION['user_id'])) {
                     Category <i class="fas fa-chevron-down"></i>
                 </button>
                 <div class="category-dropdown-content">
+                    <a href="homepage.php?show_all=1">All Vouchers</a>
                     <a href="homepage.php?category=fashion">Fashion</a>
                     <a href="homepage.php?category=food%20and%20beverage">Food and Beverage</a>
                     <a href="homepage.php?category=travel">Travel</a>
@@ -548,9 +556,7 @@ if (isset($_SESSION['user_id'])) {
             <!-- Column 5: Cart Button -->
             <a href="cart.php" class="navbar-cart-btn" title="Shopping Cart">
                 <i class="fas fa-shopping-cart"></i>
-                <?php if ($cartCount > 0): ?>
-                    <span class="cart-badge"><?= ($cartCount > 99 ? '99+' : $cartCount) ?></span>
-                <?php endif; ?>
+                <span class="cart-badge" style="display: <?= $cartCount > 0 ? 'flex' : 'none' ?>"><?= ($cartCount > 99 ? '99+' : $cartCount) ?></span>
             </a>
             
             <!-- Column 6: Profile Button -->
@@ -594,6 +600,28 @@ if (isset($_SESSION['user_id'])) {
         const category = urlParams.get('category');
         if (category) {
             document.getElementById('categoryField').value = category;
+        }
+
+        // ✅ Preserve scroll position when clicking category links
+        const categoryLinks = document.querySelectorAll('.category-dropdown-content a');
+        
+        categoryLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                // Save current scroll position
+                const currentScrollY = window.scrollY;
+                sessionStorage.setItem('scrollPosition', currentScrollY.toString());
+            });
+        });
+
+        // Restore scroll position when page loads
+        const savedScrollPosition = sessionStorage.getItem('scrollPosition');
+        if (savedScrollPosition && window.location.pathname.includes('homepage.php')) {
+            // Small delay to ensure page is fully loaded
+            setTimeout(() => {
+                window.scrollTo(0, parseInt(savedScrollPosition));
+                // Clear the saved position after restoring
+                sessionStorage.removeItem('scrollPosition');
+            }, 100);
         }
     });
 </script>

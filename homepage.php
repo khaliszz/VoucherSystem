@@ -48,6 +48,7 @@ $categoryResults = null;
 $searchResults = [];
 $pointsResults = [];
 $selectedCategoryId = null;
+$showAll = false; // all vouchers
 
 // Check if we have a category selected
 if (isset($_GET['category']) && !empty($_GET['category'])) {
@@ -55,6 +56,15 @@ if (isset($_GET['category']) && !empty($_GET['category'])) {
     if (isset($categoryMap[$catKey])) {
         $selectedCategoryId = $categoryMap[$catKey];
     }
+}
+
+// Check if show_all is requested
+if (isset($_GET['show_all']) && $_GET['show_all'] == 1) {
+    $showAll = true;
+    $sql = "SELECT voucher_id, title, image, points, description FROM voucher ORDER BY voucher_id DESC";
+    $stmt = $conn->prepare($sql);
+    $stmt->execute();
+    $allResults = $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
 // Check if we have search term or points filter
@@ -83,12 +93,12 @@ if ($hasSearch || $hasPointsFilter || $selectedCategoryId) {
     if ($hasPointsFilter) {
         if ($minPoints !== '' && is_numeric($minPoints)) {
             $sql .= " AND points >= :min_points";
-            $params[':min_points'] = (int)$minPoints;
+            $params[':min_points'] = (int) $minPoints;
         }
 
         if ($maxPoints !== '' && is_numeric($maxPoints)) {
             $sql .= " AND points <= :max_points";
-            $params[':max_points'] = (int)$maxPoints;
+            $params[':max_points'] = (int) $maxPoints;
         }
     }
 
@@ -107,6 +117,7 @@ if ($hasSearch || $hasPointsFilter || $selectedCategoryId) {
         $pointsResults = $results;
     }
 }
+
 
 // ✅ Fetch promotions
 $promoSql = "SELECT promote_id, title, image, descriptions FROM promotion";
@@ -154,7 +165,8 @@ $cartCount = $cartRow['total'] ?? 0;
             margin: 0;
             background: var(--background-color);
             color: var(--text-color);
-            padding-top: 140px; /* Increased to accommodate navbar with search */
+            padding-top: 100px;
+            /* Increased to accommodate navbar with search */
         }
 
         main {
@@ -419,7 +431,8 @@ $cartCount = $cartRow['total'] ?? 0;
         /* Mobile Responsiveness */
         @media (max-width: 768px) {
             body {
-                padding-top: 200px; /* More space on mobile */
+                padding-top: 200px;
+                /* More space on mobile */
             }
 
             .voucher-grid {
@@ -560,7 +573,7 @@ $cartCount = $cartRow['total'] ?? 0;
             position: absolute;
             background-color: var(--white-color);
             min-width: 200px;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
             border-radius: 8px;
             z-index: 1;
             margin-top: 5px;
@@ -617,8 +630,15 @@ $cartCount = $cartRow['total'] ?? 0;
         }
 
         @keyframes modalOpen {
-            from { opacity: 0; transform: translateY(-50px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .popup-close {
@@ -712,6 +732,197 @@ $cartCount = $cartRow['total'] ?? 0;
         :root {
             --success-gradient: linear-gradient(90deg, #28a745 0%, #218838 100%);
         }
+
+        .floating-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #8e2de2, #4a00e0);
+            color: #fff;
+            font-size: 16px;
+            font-weight: bold;
+            padding: 14px 22px;
+            border-radius: 50px;
+            text-decoration: none;
+            opacity: 0.8;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            z-index: 9999;
+        }
+
+        .floating-btn:hover {
+            opacity: 1;
+            transform: scale(1.05);
+        }
+
+        /* Floating button */
+        #chatbot-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #6a11cb;
+            color: white;
+            border-radius: 50%;
+            padding: 18px;
+            cursor: pointer;
+            font-size: 22px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            z-index: 999;
+            opacity: 0.9;
+            transition: 0.3s;
+        }
+
+        #chatbot-button:hover {
+            opacity: 1;
+        }
+
+        /* Chat window */
+        #chatbot-window {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            width: 360px;
+            height: 550px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+            display: none;
+            flex-direction: column;
+            z-index: 1000;
+            overflow: hidden;
+        }
+
+        #chatbot-header {
+            background: #6a11cb;
+            color: white;
+            padding: 12px;
+            border-radius: 12px 12px 0 0;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #chatbot-close {
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: normal;
+        }
+
+        #chatbot-messages {
+            flex: 1;
+            padding: 12px;
+            overflow-y: auto;
+            font-size: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        /* Chat bubbles */
+        .chat-bubble {
+            max-width: 75%;
+            padding: 10px 14px;
+            border-radius: 16px;
+            line-height: 1.4;
+            font-size: 14px;
+            word-wrap: break-word;
+        }
+
+        .user-bubble {
+            background: #6a11cb;
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+
+        .bot-bubble {
+            background: #f1f1f1;
+            color: #333;
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+        }
+
+        /* Typing indicator */
+        .typing-indicator {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 8px 14px;
+            background: #f1f1f1;
+            border-radius: 16px;
+            width: fit-content;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        .typing-indicator span {
+            width: 6px;
+            height: 6px;
+            background: #888;
+            border-radius: 50%;
+            display: inline-block;
+            animation: bounce 1.2s infinite;
+        }
+
+        .typing-indicator span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-indicator span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes bounce {
+
+            0%,
+            80%,
+            100% {
+                transform: scale(0.8);
+                opacity: 0.5;
+            }
+
+            40% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        #chatbot-input-area {
+            display: flex;
+            padding: 10px;
+            border-top: 1px solid #ddd;
+            background: #fafafa;
+        }
+
+        #chatbot-input {
+            flex: 1;
+            padding: 10px 14px;
+            border: 1px solid #ccc;
+            border-radius: 20px;
+            outline: none;
+            font-size: 14px;
+        }
+
+        #chatbot-input:focus {
+            border-color: #6a11cb;
+        }
+
+        #chatbot-send {
+            margin-left: 8px;
+            padding: 10px 16px;
+            border: none;
+            background: #6a11cb;
+            color: white;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.2s;
+        }
+
+        #chatbot-send:hover {
+            background: #4a00e0;
+        }
     </style>
 </head>
 
@@ -745,7 +956,8 @@ $cartCount = $cartRow['total'] ?? 0;
             position:relative;
         ">
             <?= htmlspecialchars($_SESSION['success_message']); ?>
-            <span onclick="this.parentElement.style.display='none'" style="position:absolute;top:8px;right:12px;cursor:pointer;font-weight:bold;">&times;</span>
+            <span onclick="this.parentElement.style.display='none'"
+                style="position:absolute;top:8px;right:12px;cursor:pointer;font-weight:bold;">&times;</span>
         </div>
         <?php unset($_SESSION['success_message']); ?>
     <?php endif; ?>
@@ -753,7 +965,8 @@ $cartCount = $cartRow['total'] ?? 0;
     <!-- Warning message container (initially hidden) -->
     <div id="warningMessage" class="warning-message" style="display: none;">
         <span id="warningText"></span>
-        <button class="close-btn" onclick="document.getElementById('warningMessage').style.display='none'">&times;</button>
+        <button class="close-btn"
+            onclick="document.getElementById('warningMessage').style.display='none'">&times;</button>
     </div>
 
     <!-- Promotion Slider -->
@@ -762,7 +975,8 @@ $cartCount = $cartRow['total'] ?? 0;
             <div class="slides">
                 <?php foreach ($promotions as $promo): ?>
                     <div class="slide">
-                        <img src="<?php echo htmlspecialchars($promo['image']); ?>" alt="<?php echo htmlspecialchars($promo['title']); ?>">
+                        <img src="<?php echo htmlspecialchars($promo['image']); ?>"
+                            alt="<?php echo htmlspecialchars($promo['title']); ?>">
                     </div>
                 <?php endforeach; ?>
             </div>
@@ -781,18 +995,24 @@ $cartCount = $cartRow['total'] ?? 0;
                         Filter by Points <i class="fas fa-chevron-down"></i>
                     </button>
                     <div class="filter-dropdown-content">
-                        <a href="homepage.php?search=<?php echo urlencode($_GET['search'] ?? ''); ?>&min_points=&max_points=1000">Less than 1000 points</a>
-                        <a href="homepage.php?search=<?php echo urlencode($_GET['search'] ?? ''); ?>&min_points=1000&max_points=4000">1000 - 4000 points</a>
-                        <a href="homepage.php?search=<?php echo urlencode($_GET['search'] ?? ''); ?>&min_points=4000&max_points=">More than 4000 points</a>
+                        <a
+                            href="homepage.php?search=<?php echo urlencode($_GET['search'] ?? ''); ?>&min_points=&max_points=1000">Less
+                            than 1000 points</a>
+                        <a
+                            href="homepage.php?search=<?php echo urlencode($_GET['search'] ?? ''); ?>&min_points=1000&max_points=4000">1000
+                            - 4000 points</a>
+                        <a
+                            href="homepage.php?search=<?php echo urlencode($_GET['search'] ?? ''); ?>&min_points=4000&max_points=">More
+                            than 4000 points</a>
                     </div>
                 </div>
-                
+
                 <div class="results-header">
                     <h2>Search Results for "<?php echo htmlspecialchars($_GET['search']); ?>"</h2>
                     <span class="results-count"><?php echo count($searchResults); ?> found</span>
                     <?php if ($hasPointsFilter): ?>
                         <div class="filter-info">
-                            • Points: 
+                            • Points:
                             <?php echo isset($_GET['min_points']) && $_GET['min_points'] !== '' ? $_GET['min_points'] : '0'; ?>
                             -
                             <?php echo isset($_GET['max_points']) && $_GET['max_points'] !== '' ? $_GET['max_points'] : '∞'; ?>
@@ -804,16 +1024,17 @@ $cartCount = $cartRow['total'] ?? 0;
                         <?php foreach ($searchResults as $voucher): ?>
                             <div class="voucher-card">
                                 <a href="voucher_details.php?id=<?php echo $voucher['voucher_id']; ?>" class="image-link">
-                                    <img src="<?php echo htmlspecialchars($voucher['image']); ?>" alt="<?php echo htmlspecialchars($voucher['title']); ?>">
+                                    <img src="<?php echo htmlspecialchars($voucher['image']); ?>"
+                                        alt="<?php echo htmlspecialchars($voucher['title']); ?>">
                                 </a>
                                 <p><?php echo htmlspecialchars($voucher['title']); ?></p>
                                 <div class="points-display">
                                     <?php echo htmlspecialchars($voucher['points']); ?> Points
                                 </div>
                                 <div class="button-container">
-                                    <a href="redeem.php?id=<?php echo $voucher['voucher_id']; ?>" class="btn redeem-btn" 
-                                       data-points="<?php echo $voucher['points']; ?>" 
-                                       data-title="<?php echo htmlspecialchars($voucher['title']); ?>">
+                                    <a href="process_redeem.php?id=<?php echo $voucher['voucher_id']; ?>" class="btn redeem-btn"
+                                        data-points="<?php echo $voucher['points']; ?>"
+                                        data-title="<?php echo htmlspecialchars($voucher['title']); ?>">
                                         REDEEM NOW
                                     </a>
                                     <a href="cart.php?action=add&id=<?= $voucher['voucher_id']; ?>" class="btn">ADD TO CART</a>
@@ -844,12 +1065,12 @@ $cartCount = $cartRow['total'] ?? 0;
                         <a href="homepage.php?min_points=4000&max_points=">More than 4000 points</a>
                     </div>
                 </div>
-                
+
                 <div class="results-header">
                     <h2>Filtered by Points</h2>
                     <span class="results-count"><?php echo count($pointsResults); ?> found</span>
                     <div class="filter-info">
-                        Points: 
+                        Points:
                         <?php echo isset($_GET['min_points']) && $_GET['min_points'] !== '' ? $_GET['min_points'] : '0'; ?>
                         -
                         <?php echo isset($_GET['max_points']) && $_GET['max_points'] !== '' ? $_GET['max_points'] : '∞'; ?>
@@ -860,16 +1081,54 @@ $cartCount = $cartRow['total'] ?? 0;
                         <?php foreach ($pointsResults as $voucher): ?>
                             <div class="voucher-card">
                                 <a href="voucher_details.php?id=<?php echo $voucher['voucher_id']; ?>" class="image-link">
-                                    <img src="<?php echo htmlspecialchars($voucher['image']); ?>" alt="<?php echo htmlspecialchars($voucher['title']); ?>">
+                                    <img src="<?php echo htmlspecialchars($voucher['image']); ?>"
+                                        alt="<?php echo htmlspecialchars($voucher['title']); ?>">
+                                </a>
+                                <p><?php echo htmlspecialchars($voucher['title']); ?></p>
+                                <div class="points-display">
+                                    <?php echo htmlspecialchars($voucher['points']); ?> Points
+                                </div>
+                                <a href="process_redeem.php?id=<?php echo $voucher['voucher_id']; ?>" class="btn redeem-btn"
+                                    data-points="<?php echo $voucher['points']; ?>"
+                                    data-title="<?php echo htmlspecialchars($voucher['title']); ?>">
+                                    REDEEM NOW
+                                </a>
+                            </div>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <div class="no-results">
+                            <h3>No vouchers found</h3>
+                            <p>Try different point ranges.</p>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+        <?php endif; ?>
+
+
+        <!-- All Vouchers Section -->
+        <?php if ($showAll): ?>
+            <div class="results-section">
+                <div class="results-header">
+                    <h2>All Vouchers</h2>
+                    <span class="results-count"><?php echo count($allResults); ?> found</span>
+                </div>
+                <div class="voucher-grid">
+                    <?php if (!empty($allResults)): ?>
+                        <?php foreach ($allResults as $voucher): ?>
+                            <div class="voucher-card">
+                                <a href="voucher_details.php?id=<?php echo $voucher['voucher_id']; ?>" class="image-link">
+                                    <img src="<?php echo htmlspecialchars($voucher['image']); ?>"
+                                        alt="<?php echo htmlspecialchars($voucher['title']); ?>">
                                 </a>
                                 <p><?php echo htmlspecialchars($voucher['title']); ?></p>
                                 <div class="points-display">
                                     <?php echo htmlspecialchars($voucher['points']); ?> Points
                                 </div>
                                 <div class="button-container">
-                                    <a href="redeem.php?id=<?php echo $voucher['voucher_id']; ?>" class="btn redeem-btn" 
-                                       data-points="<?php echo $voucher['points']; ?>" 
-                                       data-title="<?php echo htmlspecialchars($voucher['title']); ?>">
+                                    <a href="process_redeem.php?id=<?php echo $voucher['voucher_id']; ?>" class="btn redeem-btn"
+                                        data-points="<?php echo $voucher['points']; ?>"
+                                        data-title="<?php echo htmlspecialchars($voucher['title']); ?>">
                                         REDEEM NOW
                                     </a>
                                     <a href="cart.php?action=add&id=<?= $voucher['voucher_id']; ?>" class="btn">ADD TO CART</a>
@@ -878,8 +1137,8 @@ $cartCount = $cartRow['total'] ?? 0;
                         <?php endforeach; ?>
                     <?php else: ?>
                         <div class="no-results">
-                            <h3>No vouchers found</h3>
-                            <p>Try different point ranges.</p>
+                            <h3>No vouchers available</h3>
+                            <p>Please check back later.</p>
                         </div>
                     <?php endif; ?>
                 </div>
@@ -895,12 +1154,18 @@ $cartCount = $cartRow['total'] ?? 0;
                         Filter by Points <i class="fas fa-chevron-down"></i>
                     </button>
                     <div class="filter-dropdown-content">
-                        <a href="homepage.php?category=<?php echo urlencode($_GET['category']); ?>&min_points=&max_points=1000">Less than 1000 points</a>
-                        <a href="homepage.php?category=<?php echo urlencode($_GET['category']); ?>&min_points=1000&max_points=4000">1000 - 4000 points</a>
-                        <a href="homepage.php?category=<?php echo urlencode($_GET['category']); ?>&min_points=4000&max_points=">More than 4000 points</a>
+                        <a
+                            href="homepage.php?category=<?php echo urlencode($_GET['category']); ?>&min_points=&max_points=1000">Less
+                            than 1000 points</a>
+                        <a
+                            href="homepage.php?category=<?php echo urlencode($_GET['category']); ?>&min_points=1000&max_points=4000">1000
+                            - 4000 points</a>
+                        <a
+                            href="homepage.php?category=<?php echo urlencode($_GET['category']); ?>&min_points=4000&max_points=">More
+                            than 4000 points</a>
                     </div>
                 </div>
-                
+
                 <div class="results-header">
                     <h2><?php echo ucfirst($_GET['category']); ?> Vouchers</h2>
                     <span class="results-count"><?php echo count($categoryResults); ?> found</span>
@@ -910,7 +1175,7 @@ $cartCount = $cartRow['total'] ?? 0;
                                 • Search: "<?php echo htmlspecialchars($_GET['search']); ?>"
                             <?php endif; ?>
                             <?php if ($hasPointsFilter): ?>
-                                • Points: 
+                                • Points:
                                 <?php echo isset($_GET['min_points']) && $_GET['min_points'] !== '' ? $_GET['min_points'] : '0'; ?>
                                 -
                                 <?php echo isset($_GET['max_points']) && $_GET['max_points'] !== '' ? $_GET['max_points'] : '∞'; ?>
@@ -923,16 +1188,17 @@ $cartCount = $cartRow['total'] ?? 0;
                         <?php foreach ($categoryResults as $voucher): ?>
                             <div class="voucher-card">
                                 <a href="voucher_details.php?id=<?php echo $voucher['voucher_id']; ?>" class="image-link">
-                                    <img src="<?php echo htmlspecialchars($voucher['image']); ?>" alt="<?php echo htmlspecialchars($voucher['title']); ?>">
+                                    <img src="<?php echo htmlspecialchars($voucher['image']); ?>"
+                                        alt="<?php echo htmlspecialchars($voucher['title']); ?>">
                                 </a>
                                 <p><?php echo htmlspecialchars($voucher['title']); ?></p>
                                 <div class="points-display">
                                     <?php echo htmlspecialchars($voucher['points']); ?> Points
                                 </div>
                                 <div class="button-container">
-                                    <a href="redeem.php?id=<?php echo $voucher['voucher_id']; ?>" class="btn redeem-btn" 
-                                       data-points="<?php echo $voucher['points']; ?>" 
-                                       data-title="<?php echo htmlspecialchars($voucher['title']); ?>">
+                                    <a href="process_redeem.php?id=<?php echo $voucher['voucher_id']; ?>" class="btn redeem-btn"
+                                        data-points="<?php echo $voucher['points']; ?>"
+                                        data-title="<?php echo htmlspecialchars($voucher['title']); ?>">
                                         REDEEM NOW
                                     </a>
                                     <a href="cart.php?action=add&id=<?= $voucher['voucher_id']; ?>" class="btn">ADD TO CART</a>
@@ -958,12 +1224,14 @@ $cartCount = $cartRow['total'] ?? 0;
                         Filter by Points <i class="fas fa-chevron-down"></i>
                     </button>
                     <div class="filter-dropdown-content">
-                        <a href="homepage.php?min_points=&max_points=1000">< 1000 points</a>
-                        <a href="homepage.php?min_points=1000&max_points=4000">1000 - 4000 points</a>
-                        <a href="homepage.php?min_points=4000&max_points=">> 4000 points</a>
+                        <a href="homepage.php?show_all=1">All Vouchers</a>
+                        <a href="homepage.php?min_points=&max_points=1000">
+                            < 1000 points</a>
+                                <a href="homepage.php?min_points=1000&max_points=4000">1000 - 4000 points</a>
+                                <a href="homepage.php?min_points=4000&max_points=">> 4000 points</a>
                     </div>
                 </div>
-                
+
                 <div class="results-header">
                     <h2>Top Pick Vouchers</h2>
                     <span class="results-count"><?php echo count($topVouchers); ?> vouchers</span>
@@ -973,7 +1241,8 @@ $cartCount = $cartRow['total'] ?? 0;
                         <?php foreach ($topVouchers as $voucher): ?>
                             <div class="voucher-card">
                                 <a href="voucher_details.php?id=<?php echo $voucher['voucher_id']; ?>" class="image-link">
-                                    <img src="<?php echo htmlspecialchars($voucher['image']); ?>" alt="<?php echo htmlspecialchars($voucher['title']); ?>">
+                                    <img src="<?php echo htmlspecialchars($voucher['image']); ?>"
+                                        alt="<?php echo htmlspecialchars($voucher['title']); ?>">
                                 </a>
                                 <p><?php echo htmlspecialchars($voucher['title']); ?></p>
                                 <div class="points-display">
@@ -981,9 +1250,9 @@ $cartCount = $cartRow['total'] ?? 0;
                                 </div>
                                 <small>Total Redeemed: <?php echo $voucher['total_quantity']; ?></small>
                                 <div class="button-container">
-                                    <a href="redeem.php?id=<?php echo $voucher['voucher_id']; ?>" class="btn redeem-btn" 
-                                       data-points="<?php echo $voucher['points']; ?>" 
-                                       data-title="<?php echo htmlspecialchars($voucher['title']); ?>">
+                                    <a href="process_redeem.php?id=<?php echo $voucher['voucher_id']; ?>" class="btn redeem-btn"
+                                        data-points="<?php echo $voucher['points']; ?>"
+                                        data-title="<?php echo htmlspecialchars($voucher['title']); ?>">
                                         REDEEM NOW
                                     </a>
                                     <a href="cart.php?action=add&id=<?= $voucher['voucher_id']; ?>" class="btn">ADD TO CART</a>
@@ -1039,22 +1308,22 @@ $cartCount = $cartRow['total'] ?? 0;
             // Add event listeners to all redeem buttons
             const redeemButtons = document.querySelectorAll('.redeem-btn');
             const userPoints = <?php echo $userPoints; ?>;
-            
+
             redeemButtons.forEach(button => {
-                button.addEventListener('click', function(e) {
+                button.addEventListener('click', function (e) {
                     const voucherPoints = parseInt(this.getAttribute('data-points'));
                     const voucherTitle = this.getAttribute('data-title');
-                    
+
                     if (userPoints < voucherPoints) {
                         e.preventDefault(); // Prevent navigation to redeem page
-                        
+
                         // Show warning message
                         const warningMessage = document.getElementById('warningMessage');
                         const warningText = document.getElementById('warningText');
-                        
+
                         warningText.textContent = `You don't have enough points to redeem "${voucherTitle}". You need ${voucherPoints} points but only have ${userPoints}.`;
                         warningMessage.style.display = 'flex';
-                        
+
                         // Auto-hide after 5 seconds
                         setTimeout(() => {
                             warningMessage.style.display = 'none';
@@ -1067,15 +1336,15 @@ $cartCount = $cartRow['total'] ?? 0;
             const filterDropdowns = document.querySelectorAll('.points-range-filter');
             filterDropdowns.forEach(dropdown => {
                 const dropbtn = dropdown.querySelector('.filter-dropbtn');
-                
+
                 if (dropbtn) {
-                    dropbtn.addEventListener('click', function(e) {
+                    dropbtn.addEventListener('click', function (e) {
                         e.stopPropagation();
                         dropdown.classList.toggle('active');
                     });
-                    
+
                     // Close dropdown when clicking outside
-                    document.addEventListener('click', function(e) {
+                    document.addEventListener('click', function (e) {
                         if (!dropdown.contains(e.target)) {
                             dropdown.classList.remove('active');
                         }
@@ -1092,27 +1361,30 @@ $cartCount = $cartRow['total'] ?? 0;
 
             // Add event listeners to all "ADD TO CART" buttons
             addToCartButtons.forEach(button => {
-                button.addEventListener('click', function(e) {
+                button.addEventListener('click', function (e) {
                     e.preventDefault(); // Prevent default link behavior
-                    
+
                     // Get the voucher ID from the href
                     const href = this.getAttribute('href');
                     const url = new URL(href, window.location.origin);
                     const voucherId = url.searchParams.get('id');
-                    
+
                     // Make AJAX request to add item to cart
                     const xhr = new XMLHttpRequest();
                     xhr.open('GET', href, true);
                     xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-                    xhr.onreadystatechange = function() {
+                    xhr.onreadystatechange = function () {
                         if (xhr.readyState === 4 && xhr.status === 200) {
+                            console.log('AJAX response received:', xhr.responseText);
                             try {
                                 const response = JSON.parse(xhr.responseText);
+                                console.log('Parsed response:', response);
                                 if (response.success) {
                                     // Show the popup
+                                    console.log('Showing popup...');
                                     cartPopup.style.display = 'flex';
-                                    
-                                    // Update cart count in navbar if it exists
+
+                                    // Update cart count in navbar
                                     const cartBadge = document.querySelector('.cart-badge');
                                     if (cartBadge) {
                                         if (response.cartCount > 0) {
@@ -1121,10 +1393,14 @@ $cartCount = $cartRow['total'] ?? 0;
                                         } else {
                                             cartBadge.style.display = 'none';
                                         }
+                                        console.log('Cart badge updated:', cartBadge.textContent, 'Display:', cartBadge.style.display);
+                                    } else {
+                                        console.error('Cart badge element not found!');
                                     }
                                 }
                             } catch (e) {
                                 console.error('Error parsing response:', e);
+                                console.error('Raw response:', xhr.responseText);
                             }
                         }
                     };
@@ -1134,44 +1410,160 @@ $cartCount = $cartRow['total'] ?? 0;
 
             // Close popup when clicking the X button
             if (closePopup) {
-                closePopup.addEventListener('click', function() {
+                closePopup.addEventListener('click', function () {
                     cartPopup.style.display = 'none';
                 });
             }
 
             // Close popup when clicking "Add more" button
             if (addMoreBtn) {
-                addMoreBtn.addEventListener('click', function() {
+                addMoreBtn.addEventListener('click', function () {
                     cartPopup.style.display = 'none';
                 });
             }
 
             // Navigate to cart when clicking "View Cart" button
             if (viewCartBtn) {
-                viewCartBtn.addEventListener('click', function() {
+                viewCartBtn.addEventListener('click', function () {
                     window.location.href = 'cart.php';
                 });
             }
 
             // Close popup when clicking outside the modal
-            window.addEventListener('click', function(event) {
+            window.addEventListener('click', function (event) {
                 if (event.target === cartPopup) {
                     cartPopup.style.display = 'none';
                 }
             });
+
+            // Debug: Log popup element to console
+            console.log('Cart popup element:', cartPopup);
+            console.log('Add to cart buttons found:', addToCartButtons.length);
         });
 
         // Auto-hide success message after 5 seconds
-        document.addEventListener("DOMContentLoaded", function() {
+        document.addEventListener("DOMContentLoaded", function () {
             const successMessage = document.querySelector('[style*="background:#d4edda"]');
             if (successMessage) {
-                setTimeout(function() {
+                setTimeout(function () {
                     successMessage.style.display = 'none';
                 }, 5000);
             }
         });
     </script>
     <?php include 'footer.php'; ?>
+    <!-- Floating Chatbot Button -->
+    <div id="chatbot-button">💬</div>
 
+    <!-- Chatbot Window -->
+    <div id="chatbot-window">
+        <div id="chatbot-header">
+            Optima Bot
+            <span id="chatbot-close">✖</span>
+        </div>
+        <div id="chatbot-messages"></div>
+        <div id="chatbot-input-area">
+            <input type="text" id="chatbot-input" placeholder="Ask about vouchers or services..." />
+            <button id="chatbot-send">➤</button>
+        </div>
+    </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const button = document.getElementById("chatbot-button");
+            const windowEl = document.getElementById("chatbot-window");
+            const closeBtn = document.getElementById("chatbot-close");
+            const input = document.getElementById("chatbot-input");
+            const sendBtn = document.getElementById("chatbot-send");
+            const messages = document.getElementById("chatbot-messages");
+
+            // Toggle chatbot
+            button.addEventListener("click", () => {
+                windowEl.style.display = "flex";
+                // Show greeting on open
+                if (messages.children.length === 0) {
+                    appendMessage("bot", "Hello! 👋 I’m Optima Bot. How can I help you with vouchers or Optima Bank services?");
+                }
+            });
+            closeBtn.addEventListener("click", () => {
+                windowEl.style.display = "none";
+            });
+
+            // Append message
+            function appendMessage(sender, text) {
+                const msg = document.createElement("div");
+                msg.classList.add("chat-bubble", sender === "bot" ? "bot-bubble" : "user-bubble");
+
+                // Format bot messages
+                if (sender === "bot") {
+                    // Replace * with bullet points
+                    text = text.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>"); // bold
+                    text = text.replace(/\* (.*?)(\n|$)/g, "• $1<br>"); // bullet list
+                    text = text.replace(/\n/g, "<br>"); // new lines
+                    msg.innerHTML = text;
+                } else {
+                    msg.textContent = text; // user messages normal text
+                }
+
+                messages.appendChild(msg);
+                messages.scrollTop = messages.scrollHeight;
+            }
+
+
+            // Add typing indicator
+            function showTyping() {
+                const typing = document.createElement("div");
+                typing.classList.add("typing-indicator");
+                typing.innerHTML = "<span></span><span></span><span></span>";
+                typing.id = "typing";
+                messages.appendChild(typing);
+                messages.scrollTop = messages.scrollHeight;
+            }
+            function removeTyping() {
+                const typing = document.getElementById("typing");
+                if (typing) typing.remove();
+            }
+
+            // Send message
+            function sendMessage() {
+                const text = input.value.trim();
+                if (!text) return;
+                appendMessage("user", text);
+                input.value = "";
+
+                // Check greetings
+                // Check greetings (EXACT match only, not substring)
+                const greetings = ["hi", "hello", "hey", "good morning", "good afternoon"];
+                if (greetings.some(g => text.toLowerCase().trim() === g)) {
+                    appendMessage("bot", "Hello! 👋 How can I help you with vouchers or Optima Bank services today?");
+                    return;
+                }
+
+
+                // Show typing indicator
+                showTyping();
+
+                // Send to backend
+                fetch("ai_chatbot.php", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ message: text })
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        removeTyping();
+                        appendMessage("bot", data.reply || "Sorry, I didn’t understand that.");
+                    })
+                    .catch(() => {
+                        removeTyping();
+                        appendMessage("bot", "⚠️ Error connecting to chatbot.");
+                    });
+            }
+            sendBtn.addEventListener("click", sendMessage);
+            input.addEventListener("keypress", e => {
+                if (e.key === "Enter") sendMessage();
+            });
+        });
+    </script>
 </body>
+
 </html>
