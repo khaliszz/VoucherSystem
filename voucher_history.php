@@ -53,13 +53,34 @@ function getVoucherStatus($expiryDate) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Voucher History</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --button-gradient: linear-gradient(90deg, #8963e8 0%, #6352e7 100%);
+            --button-hover-gradient: linear-gradient(90deg, #9a7af0 0%, #7665f1 100%);
+            --text-color: #333;
+            --text-secondary-color: #777;
+            --border-color: #e0e0e0;
+            --background-color: #f4f7fc;
+            --white-color: #ffffff;
+        }
+
         body {
             font-family: 'Poppins', sans-serif;
             background: #f4f7fc;
             margin: 0;
             padding-top: 100px;
         }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
         .container {
             max-width: 1000px;
             margin: 40px auto;

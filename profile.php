@@ -44,7 +44,6 @@ function getVoucherStatus($expiryDate) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Profile Page</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
 
@@ -54,11 +53,23 @@ function getVoucherStatus($expiryDate) {
             --button-hover-gradient: linear-gradient(90deg, #9a7af0 0%, #7665f1 100%);
             --text-color: #333;
             --text-secondary-color: #777;
+            --border-color: #e0e0e0;
             --background-color: #f4f7fc;
             --white-color: #ffffff;
         }
 
-        body { font-family: 'Poppins', sans-serif; background: var(--background-color); }
+        body { 
+            margin: 0;
+            font-family: 'Poppins', sans-serif; 
+            background: var(--background-color); 
+            padding-top: 100px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
         .profile-cover {
             width: 100%; height: 200px;
@@ -163,9 +174,7 @@ function getVoucherStatus($expiryDate) {
     </style>
 </head>
 <body>
-
 <?php include 'navbar.php'; ?>
-
 <div class="profile-cover"></div>
 
 <main>
@@ -224,6 +233,7 @@ function getVoucherStatus($expiryDate) {
         <?php else: ?>
             <p>No vouchers redeemed yet.</p>
         <?php endif; ?>
+    </div>
     </div>
 </main>
 <?php include 'footer.php'; ?>
