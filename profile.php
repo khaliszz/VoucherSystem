@@ -62,7 +62,7 @@ function getVoucherStatus($expiryDate) {
             margin: 0;
             font-family: 'Poppins', sans-serif; 
             background: var(--background-color); 
-            padding-top: 100px;
+            padding-top: 80px;
         }
 
         * {
@@ -72,16 +72,17 @@ function getVoucherStatus($expiryDate) {
         }
 
         .profile-cover {
-            width: 100%; height: 200px;
+            width: 100%; height: 150px;
             background: var(--primary-gradient);
-            border-radius: 0 0 16px 16px;
         }
 
         .profile-container {
-            max-width: 1000px; margin: -80px auto 30px auto;
+            max-width: 1000px; margin: 0 auto 30px auto;
             background: var(--white-color);
             border-radius: 16px; padding: 30px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+            position: relative;
+            top: -40px;
         }
 
         .profile-header {
@@ -130,10 +131,15 @@ function getVoucherStatus($expiryDate) {
 
         .points-section { margin: 20px 0; }
         .points-display {
-            font-size: 2rem; font-weight: 700; color: #6a5af9;
-            background: #f8f9fa; padding: 25px; border-radius: 8px;
+            font-size: 2rem; font-weight: 700; color: #ff7b05;
+            background: rgba(47,0,55); 
+            padding: 25px; border-radius: 8px;
             text-align: center; border: 1px solid #eee;
+            position: relative;
+            overflow: hidden;
         }
+        
+        
 
         .history-list { display: flex; flex-direction: column; gap: 15px; }
         .history-item {
