@@ -120,8 +120,8 @@ if ($hasSearch || $hasPointsFilter || $selectedCategoryId) {
 }
 
 
-// ✅ Fetch promotions
-$promoSql = "SELECT promote_id, title, image, descriptions FROM promotion";
+// ✅ Fetch 3 random vouchers for promotion slider (with description)
+$promoSql = "SELECT voucher_id, title, image, description FROM voucher ORDER BY RAND() LIMIT 3";
 $promoStmt = $conn->prepare($promoSql);
 $promoStmt->execute();
 $promotions = $promoStmt->fetchAll(PDO::FETCH_ASSOC);
@@ -153,6 +153,9 @@ $cartCount = $cartRow['total'] ?? 0;
             --border-color: #e0e0e0;
             --background-color: #f4f7fc;
             --white-color: #ffffff;
+            /* Promo background settings */
+            --promo-background-color: #eef2ff; /* fallback color under image */
+            --promo-background: url('images/promo.jpg');
         }
 
         * {
@@ -190,8 +193,9 @@ $cartCount = $cartRow['total'] ?? 0;
 
         /* Promotion Slider */
         .promo-slider {
-            width: 1000px;
-            height: 250px;
+            width: 100%;
+            max-width: 1000px;
+            height: 300px;
             margin: 30px auto;
             position: relative;
             overflow: hidden;
@@ -212,14 +216,73 @@ $cartCount = $cartRow['total'] ?? 0;
             height: 100%;
             box-sizing: border-box;
             position: relative;
+            background-color: var(--promo-background-color);
+            background-image: var(--promo-background);
+            background-position: center center;
+            background-size: cover;
+            background-repeat: no-repeat;
         }
 
         .slide img {
             width: 100%;
             height: 100%;
-            object-fit: cover;
+            object-fit: contain;
             object-position: center center;
             border-radius: 12px;
+            padding: 8px 12px; /* letterboxing space so varied ratios look clean */
+        }
+
+        /* See more button overlay */
+        .see-more-btn {
+            position: absolute;
+            right: 16px;
+            bottom: 16px;
+            background: var(--button-gradient);
+            color: #ffffff;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 0.95rem;
+            font-weight: 600;
+            z-index: 9;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+            transition: all 0.25s ease;
+        }
+
+        .see-more-btn:hover {
+            background: var(--button-hover-gradient);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Slide caption (title + description) */
+        .slide-caption {
+            position: absolute;
+            left: 16px;
+            bottom: 16px;
+            right: 140px; /* leave space for button */
+            background: rgba(0, 0, 0, 0.45);
+            color: #fff;
+            padding: 12px 14px;
+            border-radius: 10px;
+            backdrop-filter: blur(2px);
+        }
+
+        .slide-caption .caption-title {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .slide-caption .caption-desc {
+            font-size: 0.9rem;
+            line-height: 1.3;
+            opacity: 0.95;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
         }
 
         /* Arrows */
@@ -446,7 +509,7 @@ $cartCount = $cartRow['total'] ?? 0;
 
             .promo-slider {
                 width: 90%;
-                height: 200px;
+                height: 220px;
                 margin: 20px auto;
             }
 
@@ -1094,6 +1157,11 @@ $cartCount = $cartRow['total'] ?? 0;
                     <div class="slide">
                         <img src="<?php echo htmlspecialchars($promo['image']); ?>"
                             alt="<?php echo htmlspecialchars($promo['title']); ?>">
+                        <div class="slide-caption">
+                            <div class="caption-title"><?php echo htmlspecialchars($promo['title']); ?></div>
+                            <div class="caption-desc"><?php echo htmlspecialchars($promo['description'] ?? ''); ?></div>
+                        </div>
+                        <a class="see-more-btn" href="voucher_details.php?id=<?php echo urlencode($promo['voucher_id']); ?>">Claim Now</a>
                     </div>
                 <?php endforeach; ?>
             </div>
