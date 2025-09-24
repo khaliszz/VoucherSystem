@@ -73,7 +73,8 @@ $minPoints = $_GET['min_points'] ?? '';
 $maxPoints = $_GET['max_points'] ?? '';
 $hasPointsFilter = ($minPoints !== '' || $maxPoints !== '');
 
-if ($hasSearch || $hasPointsFilter || $selectedCategoryId) {
+// Only run general filtering if not in "All Vouchers" mode
+if (($hasSearch || $hasPointsFilter || $selectedCategoryId) && !$showAll) {
     $sql = "SELECT voucher_id, title, image, points, description FROM voucher WHERE 1=1";
     $params = [];
 
@@ -1277,7 +1278,7 @@ $cartCount = $cartRow['total'] ?? 0;
 
 
         <!-- All Vouchers Section -->
-        <?php if ($showAll): ?>
+        <?php if ($showAll && !$hasPointsFilter && !$hasSearch): ?>
             <div class="results-section">
                 <!-- Points Range Filter Dropdown -->
                 <div class="points-range-filter">
