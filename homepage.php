@@ -73,8 +73,8 @@ $minPoints = $_GET['min_points'] ?? '';
 $maxPoints = $_GET['max_points'] ?? '';
 $hasPointsFilter = ($minPoints !== '' || $maxPoints !== '');
 
-// Only run general filtering if not in "All Vouchers" mode
-if (($hasSearch || $hasPointsFilter || $selectedCategoryId) && !$showAll) {
+// Run general filtering regardless of "All Vouchers" mode so point filters work immediately
+if ($hasSearch || $hasPointsFilter || $selectedCategoryId) {
     $sql = "SELECT voucher_id, title, image, points, description FROM voucher WHERE 1=1";
     $params = [];
 
