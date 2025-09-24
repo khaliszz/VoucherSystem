@@ -19,16 +19,21 @@ $userPoints = $user['points'] ?? 0;
 // Handle add to cart
 if (isset($_GET['action']) && $_GET['action'] == 'add' && isset($_GET['id'])) {
     $voucherId = intval($_GET['id']);
+    $quantityToAdd = isset($_GET['quantity']) ? intval($_GET['quantity']) : 1; // Get quantity from GET, default to 1 if not present
+
+    // Validate the quantity to add
+    $quantityToAdd = max(1, min(10, $quantityToAdd)); // Ensure quantity is between 1 and 10
+
     $sql = "SELECT * FROM cart_items WHERE user_id=? AND voucher_id=?";
     $stmt = $conn->prepare($sql);
     $stmt->execute([$userId, $voucherId]);
 
     if ($stmt->rowCount() > 0) {
-        $conn->prepare("UPDATE cart_items SET quantity = quantity + 1 WHERE user_id=? AND voucher_id=?")
-            ->execute([$userId, $voucherId]);
+        $conn->prepare("UPDATE cart_items SET quantity = quantity + ? WHERE user_id=? AND voucher_id=?")
+            ->execute([$quantityToAdd, $userId, $voucherId]);
     } else {
-        $conn->prepare("INSERT INTO cart_items (user_id, voucher_id, quantity) VALUES (?, ?, 1)")
-            ->execute([$userId, $voucherId]);
+        $conn->prepare("INSERT INTO cart_items (user_id, voucher_id, quantity) VALUES (?, ?, ?)")
+            ->execute([$userId, $voucherId, $quantityToAdd]);
     }
 
     if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
