@@ -1285,7 +1285,6 @@ $cartCount = $cartRow['total'] ?? 0;
                         Filter by Points <i class="fas fa-chevron-down"></i>
                     </button>
                     <div class="filter-dropdown-content">
-                        <a href="homepage.php?show_all=1">All Vouchers</a>
                         <a href="homepage.php?show_all=1&min_points=&max_points=1000">Less than 1000 points</a>
                         <a href="homepage.php?show_all=1&min_points=1000&max_points=4000">1000 - 4000 points</a>
                         <a href="homepage.php?show_all=1&min_points=4000&max_points=">More than 4000 points</a>
@@ -1469,7 +1468,6 @@ $cartCount = $cartRow['total'] ?? 0;
                         Filter by Points <i class="fas fa-chevron-down"></i>
                     </button>
                     <div class="filter-dropdown-content">
-                        <a href="homepage.php?show_all=1">All Vouchers</a>
                         <a href="homepage.php?min_points=&max_points=1000">
                             < 1000 points</a>
                                 <a href="homepage.php?min_points=1000&max_points=4000">1000 - 4000 points</a>
