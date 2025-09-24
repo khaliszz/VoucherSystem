@@ -256,21 +256,43 @@ $cartCount = $cartRow['total'] ?? 0;
         .voucher-grid {
             display: flex;
             flex-wrap: wrap;
-            justify-content: flex-start;
-            gap: 25px;
-            margin-top: 20px;
+            gap: 20px;
         }
 
-        .voucher-card {
-            background: var(--white-color);
-            border-radius: 16px;
-            padding: 20px;
+       .voucher-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 15px;
             text-align: center;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            width: calc(20% - 20px);
-            margin-bottom: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            transition: 0.3s ease;
+            flex: 1 1 calc(20% - 20px); /* 5 per row */
+            display: flex;
+            flex-direction: column;
+            min-height: 400px; /* Set minimum height for consistency */
         }
+
+        /* Make all titles consistent height */
+       .voucher-title {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            height: 52px; /* Fixed height for exactly 2 lines */
+            line-height: 1.3;
+            margin: 10px 0;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-color);
+            flex-shrink: 0; /* Prevent title from shrinking */
+        }
+
+        /* Push buttons to the bottom */
+        .button-container {
+            margin-top: auto;
+        }
+
 
         .voucher-card:hover {
             transform: translateY(-5px);
@@ -286,6 +308,7 @@ $cartCount = $cartRow['total'] ?? 0;
             border-radius: 12px;
             transition: transform 0.3s ease, box-shadow 0.3s ease;
             cursor: pointer;
+            flex-shrink: 0; /* Prevent image from shrinking */
         }
 
         .voucher-card img:hover {
@@ -293,18 +316,20 @@ $cartCount = $cartRow['total'] ?? 0;
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
         }
 
-        .voucher-card p {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: var(--text-color);
-            margin-bottom: 8px;
+        /* Content area that grows to fill available space */
+        .voucher-content {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            justify-content: space-between;
         }
 
         .voucher-card small {
             font-size: 0.9rem;
             color: var(--text-secondary-color);
             display: block;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
+            flex-shrink: 0; /* Prevent from shrinking */
         }
 
         /* Points display styling */
@@ -315,10 +340,11 @@ $cartCount = $cartRow['total'] ?? 0;
             background: linear-gradient(135deg, #f0f0ff 0%, #e6e6ff 100%);
             padding: 10px 20px;
             border-radius: 25px;
-            margin: 15px 0 20px 0;
+            margin: 15px 0;
             border: 2px solid #6a5af9;
             display: inline-block;
             min-width: 120px;
+            flex-shrink: 0; /* Prevent from shrinking */
         }
 
         .voucher-card a.btn {
@@ -326,7 +352,6 @@ $cartCount = $cartRow['total'] ?? 0;
             background: var(--button-gradient);
             border: none;
             padding: 12px 20px;
-            margin: 3px;
             border-radius: 8px;
             color: var(--white-color);
             cursor: pointer;
@@ -346,13 +371,18 @@ $cartCount = $cartRow['total'] ?? 0;
 
         /* Button container for better spacing */
         .button-container {
-            margin-top: 10px;
+            margin-top: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding-top: 15px;
         }
 
         /* Make image clickable to voucher details */
         .image-link {
             display: block;
             text-decoration: none;
+            flex-shrink: 0;
         }
 
         /* Results section styling */
@@ -1170,17 +1200,30 @@ $cartCount = $cartRow['total'] ?? 0;
                                     <img src="<?php echo htmlspecialchars($voucher['image']); ?>"
                                         alt="<?php echo htmlspecialchars($voucher['title']); ?>">
                                 </a>
-                                <p><?php echo htmlspecialchars($voucher['title']); ?></p>
-                                <div class="points-display">
-                                    <?php echo htmlspecialchars($voucher['points']); ?> Points
-                                </div>
-                                <div class="button-container">
-                                    <a href="process_redeem.php?id=<?php echo $voucher['voucher_id']; ?>" class="btn redeem-btn"
+                                
+                                <div class="voucher-content">
+                                    <!-- Title with consistent height (clamped to 2 lines) -->
+                                    <p class="voucher-title">
+                                        <?php echo htmlspecialchars($voucher['title']); ?>
+                                    </p>
+                                    
+                                    <div class="points-display">
+                                        <?php echo htmlspecialchars($voucher['points']); ?> Points
+                                    </div>
+                                    
+                                    <?php if (isset($voucher['total_quantity'])): ?>
+                                        <small>Total Redeemed: <?php echo $voucher['total_quantity']; ?></small>
+                                    <?php endif; ?>
+                                    
+                                    <div class="button-container">
+                                        <a href="process_redeem.php?id=<?php echo $voucher['voucher_id']; ?>" 
+                                        class="btn redeem-btn"
                                         data-points="<?php echo $voucher['points']; ?>"
                                         data-title="<?php echo htmlspecialchars($voucher['title']); ?>">
-                                        REDEEM NOW
-                                    </a>
-                                    <a href="cart.php?action=add&id=<?= $voucher['voucher_id']; ?>" class="btn">ADD TO CART</a>
+                                            REDEEM NOW
+                                        </a>
+                                        <a href="cart.php?action=add&id=<?= $voucher['voucher_id']; ?>" class="btn">ADD TO CART</a>
+                                    </div>
                                 </div>
                             </div>
                         <?php endforeach; ?>
@@ -1255,15 +1298,31 @@ $cartCount = $cartRow['total'] ?? 0;
                                     <img src="<?php echo htmlspecialchars($voucher['image']); ?>"
                                         alt="<?php echo htmlspecialchars($voucher['title']); ?>">
                                 </a>
-                                <p><?php echo htmlspecialchars($voucher['title']); ?></p>
-                                <div class="points-display">
-                                    <?php echo htmlspecialchars($voucher['points']); ?> Points
+                                
+                                <div class="voucher-content">
+                                    <!-- Title with consistent height (clamped to 2 lines) -->
+                                    <p class="voucher-title">
+                                        <?php echo htmlspecialchars($voucher['title']); ?>
+                                    </p>
+                                    
+                                    <div class="points-display">
+                                        <?php echo htmlspecialchars($voucher['points']); ?> Points
+                                    </div>
+                                    
+                                    <?php if (isset($voucher['total_quantity'])): ?>
+                                        <small>Total Redeemed: <?php echo $voucher['total_quantity']; ?></small>
+                                    <?php endif; ?>
+                                    
+                                    <div class="button-container">
+                                        <a href="process_redeem.php?id=<?php echo $voucher['voucher_id']; ?>" 
+                                        class="btn redeem-btn"
+                                        data-points="<?php echo $voucher['points']; ?>"
+                                        data-title="<?php echo htmlspecialchars($voucher['title']); ?>">
+                                            REDEEM NOW
+                                        </a>
+                                        <a href="cart.php?action=add&id=<?= $voucher['voucher_id']; ?>" class="btn">ADD TO CART</a>
+                                    </div>
                                 </div>
-                                <a href="process_redeem.php?id=<?php echo $voucher['voucher_id']; ?>" class="btn redeem-btn"
-                                    data-points="<?php echo $voucher['points']; ?>"
-                                    data-title="<?php echo htmlspecialchars($voucher['title']); ?>">
-                                    REDEEM NOW
-                                </a>
                             </div>
                         <?php endforeach; ?>
                     <?php else: ?>
@@ -1339,17 +1398,30 @@ $cartCount = $cartRow['total'] ?? 0;
                                     <img src="<?php echo htmlspecialchars($voucher['image']); ?>"
                                         alt="<?php echo htmlspecialchars($voucher['title']); ?>">
                                 </a>
-                                <p><?php echo htmlspecialchars($voucher['title']); ?></p>
-                                <div class="points-display">
-                                    <?php echo htmlspecialchars($voucher['points']); ?> Points
-                                </div>
-                                <div class="button-container">
-                                    <a href="process_redeem.php?id=<?php echo $voucher['voucher_id']; ?>" class="btn redeem-btn"
+                                
+                                <div class="voucher-content">
+                                    <!-- Title with consistent height (clamped to 2 lines) -->
+                                    <p class="voucher-title">
+                                        <?php echo htmlspecialchars($voucher['title']); ?>
+                                    </p>
+                                    
+                                    <div class="points-display">
+                                        <?php echo htmlspecialchars($voucher['points']); ?> Points
+                                    </div>
+                                    
+                                    <?php if (isset($voucher['total_quantity'])): ?>
+                                        <small>Total Redeemed: <?php echo $voucher['total_quantity']; ?></small>
+                                    <?php endif; ?>
+                                    
+                                    <div class="button-container">
+                                        <a href="process_redeem.php?id=<?php echo $voucher['voucher_id']; ?>" 
+                                        class="btn redeem-btn"
                                         data-points="<?php echo $voucher['points']; ?>"
                                         data-title="<?php echo htmlspecialchars($voucher['title']); ?>">
-                                        REDEEM NOW
-                                    </a>
-                                    <a href="cart.php?action=add&id=<?= $voucher['voucher_id']; ?>" class="btn">ADD TO CART</a>
+                                            REDEEM NOW
+                                        </a>
+                                        <a href="cart.php?action=add&id=<?= $voucher['voucher_id']; ?>" class="btn">ADD TO CART</a>
+                                    </div>
                                 </div>
                             </div>
                         <?php endforeach; ?>
@@ -1436,17 +1508,30 @@ $cartCount = $cartRow['total'] ?? 0;
                                     <img src="<?php echo htmlspecialchars($voucher['image']); ?>"
                                         alt="<?php echo htmlspecialchars($voucher['title']); ?>">
                                 </a>
-                                <p><?php echo htmlspecialchars($voucher['title']); ?></p>
-                                <div class="points-display">
-                                    <?php echo htmlspecialchars($voucher['points']); ?> Points
-                                </div>
-                                <div class="button-container">
-                                    <a href="process_redeem.php?id=<?php echo $voucher['voucher_id']; ?>" class="btn redeem-btn"
+                                
+                                <div class="voucher-content">
+                                    <!-- Title with consistent height (clamped to 2 lines) -->
+                                    <p class="voucher-title">
+                                        <?php echo htmlspecialchars($voucher['title']); ?>
+                                    </p>
+                                    
+                                    <div class="points-display">
+                                        <?php echo htmlspecialchars($voucher['points']); ?> Points
+                                    </div>
+                                    
+                                    <?php if (isset($voucher['total_quantity'])): ?>
+                                        <small>Total Redeemed: <?php echo $voucher['total_quantity']; ?></small>
+                                    <?php endif; ?>
+                                    
+                                    <div class="button-container">
+                                        <a href="process_redeem.php?id=<?php echo $voucher['voucher_id']; ?>" 
+                                        class="btn redeem-btn"
                                         data-points="<?php echo $voucher['points']; ?>"
                                         data-title="<?php echo htmlspecialchars($voucher['title']); ?>">
-                                        REDEEM NOW
-                                    </a>
-                                    <a href="cart.php?action=add&id=<?= $voucher['voucher_id']; ?>" class="btn">ADD TO CART</a>
+                                            REDEEM NOW
+                                        </a>
+                                        <a href="cart.php?action=add&id=<?= $voucher['voucher_id']; ?>" class="btn">ADD TO CART</a>
+                                    </div>
                                 </div>
                             </div>
                         <?php endforeach; ?>
@@ -1514,18 +1599,30 @@ $cartCount = $cartRow['total'] ?? 0;
                                     <img src="<?php echo htmlspecialchars($voucher['image']); ?>"
                                         alt="<?php echo htmlspecialchars($voucher['title']); ?>">
                                 </a>
-                                <p><?php echo htmlspecialchars($voucher['title']); ?></p>
-                                <div class="points-display">
-                                    <?php echo htmlspecialchars($voucher['points']); ?> Points
-                                </div>
-                                <small>Total Redeemed: <?php echo $voucher['total_quantity']; ?></small>
-                                <div class="button-container">
-                                    <a href="process_redeem.php?id=<?php echo $voucher['voucher_id']; ?>" class="btn redeem-btn"
+                                
+                                <div class="voucher-content">
+                                    <!-- Title with consistent height (clamped to 2 lines) -->
+                                    <p class="voucher-title">
+                                        <?php echo htmlspecialchars($voucher['title']); ?>
+                                    </p>
+                                    
+                                    <div class="points-display">
+                                        <?php echo htmlspecialchars($voucher['points']); ?> Points
+                                    </div>
+                                    
+                                    <?php if (isset($voucher['total_quantity'])): ?>
+                                        <small>Total Redeemed: <?php echo $voucher['total_quantity']; ?></small>
+                                    <?php endif; ?>
+                                    
+                                    <div class="button-container">
+                                        <a href="process_redeem.php?id=<?php echo $voucher['voucher_id']; ?>" 
+                                        class="btn redeem-btn"
                                         data-points="<?php echo $voucher['points']; ?>"
                                         data-title="<?php echo htmlspecialchars($voucher['title']); ?>">
-                                        REDEEM NOW
-                                    </a>
-                                    <a href="cart.php?action=add&id=<?= $voucher['voucher_id']; ?>" class="btn">ADD TO CART</a>
+                                            REDEEM NOW
+                                        </a>
+                                        <a href="cart.php?action=add&id=<?= $voucher['voucher_id']; ?>" class="btn">ADD TO CART</a>
+                                    </div>
                                 </div>
                             </div>
                         <?php endforeach; ?>
