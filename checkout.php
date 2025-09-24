@@ -15,6 +15,7 @@ $stmt->execute([$userId]);
 $user = $stmt->fetch(PDO::FETCH_ASSOC);
 $userPoints = $user['points'] ?? 0;
 
+
 // Get items from POST or session
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['items'])) {
     $confirmItems = explode(',', $_POST['items']);
@@ -28,8 +29,8 @@ if (empty($confirmItems)) {
     exit;
 }
 
-// Fetch voucher details with quantities
-$placeholders = implode(',', array_fill(0, count($confirmItems), '?'));
+
+$placeholders = implode(',', array_fill(0, count($checkoutItems), '?'));
 $sql = "SELECT v.voucher_id, v.title, v.image, v.points, 
         COALESCE(c.quantity, 1) as quantity
         FROM voucher v

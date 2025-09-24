@@ -103,77 +103,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             margin: 0;
             background: var(--background-color);
             color: var(--text-color);
+            padding-top: 100px;
         }
-
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: var(--white-color);
-            padding: 15px 30px;
-            box-shadow: 0 2px 10px rgba(137, 99, 232, 0.3);
-        }
-
-        nav {
-            display: flex;
-            align-items: center;
-            gap: 30px;
-        }
-
-        nav a {
-            text-decoration: none;
-            color: var(--text-color);
-            font-weight: 600;
-            font-size: 1rem;
-            transition: opacity 0.3s ease;
-        }
-
-        nav a:hover {
-            color: #6a5af9;
-        }
-
-        /* Dropdown */
-        .dropdown { position: relative; display: inline-block; }
-        .dropdown-content {
-            display: none;
-            position: absolute;
-            top: 100%; left: 0;
-            background-color: var(--white-color);
-            min-width: 180px;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
-            border-radius: 8px;
-            z-index: 1;
-        }
-        .dropdown-content a {
-            color: var(--text-color);
-            padding: 12px 16px;
-            text-decoration: none;
-            display: block;
-            transition: background 0.2s ease;
-        }
-        .dropdown-content a:hover {
-            background: #f1f1f1;
-            color: #6a5af9;
-        }
-        .dropdown:hover .dropdown-content { display: block; }
-
-        .profile-btn {
-            display: inline-block;
-            border-radius: 50%;
-            overflow: hidden;
-            width: 45px; height: 45px;
-            cursor: pointer;
-            transition: transform 0.3s ease;
-        }
-        .profile-btn:hover { transform: scale(1.05); }
-        .profile-btn .profile-img {
-            width: 100%; height: 100%;
-            object-fit: cover;
-            border-radius: 50%;
-            border: 3px solid var(--white-color);
-            transition: border-color 0.3s ease;
-        }
-        .profile-btn:hover .profile-img { border-color: #6a5af9; }
 
         main {
             padding: 40px 30px;
@@ -495,6 +426,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </style>
 </head>
 <body>
+    <?php include 'navbar.php'; ?>
 
     <main>
         <div class="page-header">
@@ -600,5 +532,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
     </script>
+    <?php include 'footer.php'; ?>
 </body>
 </html>

@@ -74,6 +74,7 @@ foreach ($cartItems as $item) {
 }
 $_SESSION['recent_history_ids'] = $historyIds;
 
+
 // Clear only the purchased items from cart
 foreach ($cartItems as $item) {
     $clearCartItem = $conn->prepare("DELETE FROM cart_items WHERE user_id=? AND voucher_id=?");

@@ -872,31 +872,6 @@ foreach ($cartItems as $item) {
                     </button>
                 </form>
             </div>
-<<<<<<< Updated upstream
-            <a href="checkout.php" class="checkout-btn" id="checkoutBtn">Checkout</a>
-=======
->>>>>>> Stashed changes
-        </div>
-        <?php endif; ?>
-    </div>
-
-<<<<<<< Updated upstream
-    <!-- Mobile Sticky Checkout Bar -->
-    <?php if (!empty($cartItems)): ?>
-    <div class="mobile-checkout-bar">
-        <div class="mobile-checkout-content">
-            <div class="mobile-checkout-info">
-                <div class="mobile-checkout-total" id="mobileTotalPoints">0 Points</div>
-                <div class="mobile-checkout-items" id="mobileSelectedItems">0 items selected</div>
-            </div>
-            <a href="checkout.php" class="mobile-checkout-btn" id="mobileCheckoutBtn">Checkout</a>
-        </div>
-    </div>
-    <?php endif; ?>
-</div>
-
-=======
->>>>>>> Stashed changes
 <script>
     const totalPointsEl = document.getElementById('totalPoints');
     const mobileTotalPointsEl = document.getElementById('mobileTotalPoints');
@@ -1055,40 +1030,42 @@ foreach ($cartItems as $item) {
     });
 
     // Checkout validation
-    function validateCheckout(e) {
-        const selectedCount = document.querySelectorAll('.select-item:checked').length;
-        let total = 0;
-        
-        document.querySelectorAll('.select-item:checked').forEach(cb => {
-            const item = cb.closest('.cart-item');
-            const points = parseInt(item.dataset.points);
-            const qty = parseInt(item.dataset.qty);
-            total += points * qty;
-        });
+    function validateCheckout(e, formId, inputId) {
+    e.preventDefault();
 
-        if (selectedCount === 0) {
-            e.preventDefault();
-            alert('Please select at least one item to checkout');
-            return false;
-        }
-        
-        if (total > userPoints) {
-            e.preventDefault();
-            const needed = total - userPoints;
-            alert(`You don't have enough points. You need ${needed} more points to complete this purchase.`);
-            return false;
-        }
-        
-        return true;
+    const selected = [];
+    let total = 0;
+    document.querySelectorAll('.select-item:checked').forEach(cb => {
+        const item = cb.closest('.cart-item');
+        const points = parseInt(item.dataset.points);
+        const qty = parseInt(item.dataset.qty);
+        selected.push(item.dataset.id);
+        total += points * qty;
+    });
+
+    if (selected.length === 0) {
+        alert('Please select at least one item to checkout');
+        return false;
     }
 
-    if (checkoutBtn) {
-        checkoutBtn.addEventListener('click', validateCheckout);
+    if (total > userPoints) {
+        alert(`Not enough points. You need ${total - userPoints} more points.`);
+        return false;
     }
 
-    if (mobileCheckoutBtn) {
-        mobileCheckoutBtn.addEventListener('click', validateCheckout);
+    // ✅ Store selected IDs in hidden input & submit form
+    document.getElementById(inputId).value = selected.join(',');
+    document.getElementById(formId).submit();
+    return true;
     }
+    
+    document.querySelector('#checkoutForm button').addEventListener('click', function(e) {
+    validateCheckout(e, 'checkoutForm', 'checkoutItems');
+    });
+
+    document.querySelector('#mobileCheckoutForm button').addEventListener('click', function(e) {
+    validateCheckout(e, 'mobileCheckoutForm', 'mobileCheckoutItems');
+    });
 
     // Initialize on page load
     restoreChecked();
