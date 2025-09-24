@@ -537,17 +537,7 @@ if (isset($_SESSION['user_id'])) {
                 </div>
             </div>
             
-            <!-- Column 3: Search Bar -->
-            <div class="search-container">
-                <form method="get" action="homepage.php" class="search-form" id="searchForm">
-                    <input type="hidden" name="category" id="categoryField" value="<?php echo isset($_GET['category']) ? htmlspecialchars($_GET['category']) : ''; ?>">
-                    <input type="text" name="search" class="search-input" placeholder="Search vouchers..."
-                           value="<?php echo isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>">
-                    <button type="submit" class="search-btn">
-                        <i class="fas fa-search"></i>
-                    </button>
-                </form>
-            </div>
+            
             
             <!-- Column 4: Points Display -->
             <div class="user-points-display">
