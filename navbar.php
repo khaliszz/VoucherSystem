@@ -529,6 +529,7 @@ if (isset($_SESSION['user_id'])) {
                 </button>
                 <div class="category-dropdown-content">
                     <a href="homepage.php?show_all=1">All Vouchers</a>
+                    <a href="homepage.php">Top Picks</a>
                     <a href="homepage.php?category=fashion">Fashion</a>
                     <a href="homepage.php?category=food%20and%20beverage">Food and Beverage</a>
                     <a href="homepage.php?category=travel">Travel</a>

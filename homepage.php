@@ -546,6 +546,7 @@ $cartCount = $cartRow['total'] ?? 0;
             position: relative;
             display: inline-block;
             margin-bottom: 20px;
+            margin-right: 10px;
         }
 
         .filter-dropbtn {
@@ -601,6 +602,121 @@ $cartCount = $cartRow['total'] ?? 0;
 
         .points-range-filter.active .filter-dropdown-content {
             display: block;
+        }
+
+        /* Category Dropdown Styles (for inline use) */
+        .inline-category-dropdown {
+            position: relative;
+            display: inline-block;
+            margin-bottom: 20px;
+            margin-right: 10px;
+        }
+
+        .inline-category-dropbtn {
+            background-color: var(--white-color);
+            color: var(--text-color);
+            padding: 10px 16px;
+            font-size: 1rem;
+            border: 2px solid var(--border-color);
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .inline-category-dropbtn:hover {
+            border-color: #6a5af9;
+            color: #6a5af9;
+        }
+
+        .inline-category-dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: var(--white-color);
+            min-width: 180px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            z-index: 1;
+            margin-top: 5px;
+            overflow: hidden;
+        }
+
+        .inline-category-dropdown-content a {
+            color: var(--text-color);
+            padding: 10px 14px;
+            text-decoration: none;
+            display: block;
+            transition: background 0.2s ease;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 0.95rem;
+        }
+
+        .inline-category-dropdown-content a:last-child {
+            border-bottom: none;
+        }
+
+        .inline-category-dropdown-content a:hover {
+            background-color: #f8f9fa;
+            color: #6a5af9;
+        }
+
+        .inline-category-dropdown.active .inline-category-dropdown-content {
+            display: block;
+        }
+
+        /* Search bar styles (for inline use) */
+        .inline-search-container {
+            display: inline-block;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .inline-search-form {
+            display: flex;
+            align-items: center;
+        }
+
+        .inline-search-input {
+            padding: 10px 10px;
+            border: 2px solid var(--border-color);
+            border-radius: 25px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+            padding-right: 45px;
+            width: 200px;
+        }
+
+        .inline-search-input:focus {
+            outline: none;
+            border-color: #6a5af9;
+        }
+
+        .inline-search-btn {
+            background: var(--button-gradient);
+            color: white;
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .inline-search-btn:hover {
+            background: var(--button-hover-gradient);
+            transform: translateY(-50%) scale(1.1);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
         }
 
         /* Popup Modal Styles */
@@ -1007,6 +1123,32 @@ $cartCount = $cartRow['total'] ?? 0;
                     </div>
                 </div>
 
+                <!-- Category Dropdown -->
+                <div class="inline-category-dropdown">
+                    <button class="inline-category-dropbtn">
+                        Category <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="inline-category-dropdown-content">
+                        <a href="homepage.php?show_all=1">All Vouchers</a>
+                        <a href="homepage.php">Top Picks</a>
+                        <a href="homepage.php?category=fashion">Fashion</a>
+                        <a href="homepage.php?category=food%20and%20beverage">Food and Beverage</a>
+                        <a href="homepage.php?category=travel">Travel</a>
+                        <a href="homepage.php?category=sports">Sports</a>
+                    </div>
+                </div>
+
+                <!-- Search Bar -->
+                <div class="inline-search-container">
+                    <form method="get" action="homepage.php" class="inline-search-form">
+                        <input type="text" name="search" class="inline-search-input" placeholder="Search vouchers..."
+                               value="<?php echo isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>">
+                        <button type="submit" class="inline-search-btn">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </form>
+                </div>
+
                 <div class="results-header">
                     <h2>Search Results for "<?php echo htmlspecialchars($_GET['search']); ?>"</h2>
                     <span class="results-count"><?php echo count($searchResults); ?> found</span>
@@ -1066,6 +1208,34 @@ $cartCount = $cartRow['total'] ?? 0;
                     </div>
                 </div>
 
+                <!-- Category Dropdown -->
+                <div class="inline-category-dropdown">
+                    <button class="inline-category-dropbtn">
+                        Category <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="inline-category-dropdown-content">
+                        <a href="homepage.php?show_all=1">All Vouchers</a>
+                        <a href="homepage.php">Top Picks</a>
+                        <a href="homepage.php?category=fashion">Fashion</a>
+                        <a href="homepage.php?category=food%20and%20beverage">Food and Beverage</a>
+                        <a href="homepage.php?category=travel">Travel</a>
+                        <a href="homepage.php?category=sports">Sports</a>
+                    </div>
+                </div>
+
+                <!-- Search Bar -->
+                <div class="inline-search-container">
+                    <form method="get" action="homepage.php" class="inline-search-form">
+                        <input type="hidden" name="min_points" value="<?php echo isset($_GET['min_points']) ? htmlspecialchars($_GET['min_points']) : ''; ?>">
+                        <input type="hidden" name="max_points" value="<?php echo isset($_GET['max_points']) ? htmlspecialchars($_GET['max_points']) : ''; ?>">
+                        <input type="text" name="search" class="inline-search-input" placeholder="Search vouchers..."
+                               value="<?php echo isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>">
+                        <button type="submit" class="inline-search-btn">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </form>
+                </div>
+
                 <div class="results-header">
                     <h2>Filtered by Points</h2>
                     <span class="results-count"><?php echo count($pointsResults); ?> found</span>
@@ -1109,9 +1279,57 @@ $cartCount = $cartRow['total'] ?? 0;
         <!-- All Vouchers Section -->
         <?php if ($showAll): ?>
             <div class="results-section">
+                <!-- Points Range Filter Dropdown -->
+                <div class="points-range-filter">
+                    <button class="filter-dropbtn">
+                        Filter by Points <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="filter-dropdown-content">
+                        <a href="homepage.php?show_all=1">All Vouchers</a>
+                        <a href="homepage.php?show_all=1&min_points=&max_points=1000">Less than 1000 points</a>
+                        <a href="homepage.php?show_all=1&min_points=1000&max_points=4000">1000 - 4000 points</a>
+                        <a href="homepage.php?show_all=1&min_points=4000&max_points=">More than 4000 points</a>
+                    </div>
+                </div>
+
+                <!-- Category Dropdown -->
+                <div class="inline-category-dropdown">
+                    <button class="inline-category-dropbtn">
+                        Category <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="inline-category-dropdown-content">
+                        <a href="homepage.php?show_all=1">All Vouchers</a>
+                        <a href="homepage.php">Top Picks</a>
+                        <a href="homepage.php?category=fashion">Fashion</a>
+                        <a href="homepage.php?category=food%20and%20beverage">Food and Beverage</a>
+                        <a href="homepage.php?category=travel">Travel</a>
+                        <a href="homepage.php?category=sports">Sports</a>
+                    </div>
+                </div>
+
+                <!-- Search Bar -->
+                <div class="inline-search-container">
+                    <form method="get" action="homepage.php" class="inline-search-form">
+                        <input type="hidden" name="show_all" value="1">
+                        <input type="text" name="search" class="inline-search-input" placeholder="Search vouchers..."
+                               value="<?php echo isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>">
+                        <button type="submit" class="inline-search-btn">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </form>
+                </div>
+
                 <div class="results-header">
                     <h2>All Vouchers</h2>
                     <span class="results-count"><?php echo count($allResults); ?> found</span>
+                    <?php if ($hasPointsFilter): ?>
+                        <div class="filter-info">
+                            • Points:
+                            <?php echo isset($_GET['min_points']) && $_GET['min_points'] !== '' ? $_GET['min_points'] : '0'; ?> 
+                            -
+                            <?php echo isset($_GET['max_points']) && $_GET['max_points'] !== '' ? $_GET['max_points'] : '∞'; ?>
+                        </div>
+                    <?php endif; ?>
                 </div>
                 <div class="voucher-grid">
                     <?php if (!empty($allResults)): ?>
@@ -1166,6 +1384,33 @@ $cartCount = $cartRow['total'] ?? 0;
                     </div>
                 </div>
 
+                <!-- Category Dropdown -->
+                <div class="inline-category-dropdown">
+                    <button class="inline-category-dropbtn">
+                        Category <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="inline-category-dropdown-content">
+                        <a href="homepage.php?show_all=1">All Vouchers</a>
+                        <a href="homepage.php">Top Picks</a>
+                        <a href="homepage.php?category=fashion">Fashion</a>
+                        <a href="homepage.php?category=food%20and%20beverage">Food and Beverage</a>
+                        <a href="homepage.php?category=travel">Travel</a>
+                        <a href="homepage.php?category=sports">Sports</a>
+                    </div>
+                </div>
+
+                <!-- Search Bar -->
+                <div class="inline-search-container">
+                    <form method="get" action="homepage.php" class="inline-search-form">
+                        <input type="hidden" name="category" value="<?php echo isset($_GET['category']) ? htmlspecialchars($_GET['category']) : ''; ?>">
+                        <input type="text" name="search" class="inline-search-input" placeholder="Search vouchers..."
+                               value="<?php echo isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>">
+                        <button type="submit" class="inline-search-btn">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </form>
+                </div>
+
                 <div class="results-header">
                     <h2><?php echo ucfirst($_GET['category']); ?> Vouchers</h2>
                     <span class="results-count"><?php echo count($categoryResults); ?> found</span>
@@ -1215,8 +1460,8 @@ $cartCount = $cartRow['total'] ?? 0;
             </div>
         <?php endif; ?>
 
-        <!-- Top Pick Voucher Section (shown when no filters are active) -->
-        <?php if (!$hasSearch && !$hasPointsFilter && !$selectedCategoryId): ?>
+        
+        <?php if (!$hasSearch && !$hasPointsFilter && !$selectedCategoryId && !$showAll): ?>
             <div class="results-section">
                 <!-- Points Range Filter Dropdown -->
                 <div class="points-range-filter">
@@ -1230,6 +1475,32 @@ $cartCount = $cartRow['total'] ?? 0;
                                 <a href="homepage.php?min_points=1000&max_points=4000">1000 - 4000 points</a>
                                 <a href="homepage.php?min_points=4000&max_points=">> 4000 points</a>
                     </div>
+                </div>
+
+                <!-- Category Dropdown -->
+                <div class="inline-category-dropdown">
+                    <button class="inline-category-dropbtn">
+                        Category <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="inline-category-dropdown-content">
+                        <a href="homepage.php?show_all=1">All Vouchers</a>
+                        <a href="homepage.php">Top Picks</a>
+                        <a href="homepage.php?category=fashion">Fashion</a>
+                        <a href="homepage.php?category=food%20and%20beverage">Food and Beverage</a>
+                        <a href="homepage.php?category=travel">Travel</a>
+                        <a href="homepage.php?category=sports">Sports</a>
+                    </div>
+                </div>
+
+                <!-- Search Bar -->
+                <div class="inline-search-container">
+                    <form method="get" action="homepage.php" class="inline-search-form">
+                        <input type="text" name="search" class="inline-search-input" placeholder="Search vouchers..."
+                               value="<?php echo isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>">
+                        <button type="submit" class="inline-search-btn">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </form>
                 </div>
 
                 <div class="results-header">
@@ -1449,6 +1720,38 @@ $cartCount = $cartRow['total'] ?? 0;
                     successMessage.style.display = 'none';
                 }, 5000);
             }
+        });
+
+        // Inline Category Dropdown functionality
+        const inlineCategoryDropdowns = document.querySelectorAll('.inline-category-dropdown');
+        inlineCategoryDropdowns.forEach(dropdown => {
+            const dropbtn = dropdown.querySelector('.inline-category-dropbtn');
+
+            if (dropbtn) {
+                dropbtn.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    dropdown.classList.toggle('active');
+                });
+
+                // Close dropdown when clicking outside
+                document.addEventListener('click', function (e) {
+                    if (!dropdown.contains(e.target)) {
+                        dropdown.classList.remove('active');
+                    }
+                });
+            }
+        });
+
+        // Inline Search Bar functionality
+        const inlineSearchForms = document.querySelectorAll('.inline-search-form');
+        inlineSearchForms.forEach(form => {
+            // Add event listener to prevent form submission if empty
+            form.addEventListener('submit', function(e) {
+                const searchInput = form.querySelector('.inline-search-input');
+                if (searchInput && searchInput.value.trim() === '') {
+                    e.preventDefault();
+                }
+            });
         });
     </script>
     <?php include 'footer.php'; ?>
