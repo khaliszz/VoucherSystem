@@ -19,6 +19,11 @@ $userPoints = $user['points'] ?? 0;
 // Handle add to cart
 if (isset($_GET['action']) && $_GET['action'] == 'add' && isset($_GET['id'])) {
     $voucherId = intval($_GET['id']);
+    $quantityToAdd = isset($_GET['quantity']) ? intval($_GET['quantity']) : 1; // Get quantity from GET, default to 1 if not present
+
+    // Validate the quantity to add
+    $quantityToAdd = max(1, min(10, $quantityToAdd)); // Ensure quantity is between 1 and 10
+
     $sql = "SELECT * FROM cart_items WHERE user_id=? AND voucher_id=?";
     $stmt = $conn->prepare($sql);
     $stmt->execute([$userId, $voucherId]);
@@ -519,6 +524,7 @@ foreach ($cartItems as $item) {
             width: 130px;
             opacity: 0.6;
             margin-bottom: 20px;
+
         }
 
         /* Mobile Responsive Styles */

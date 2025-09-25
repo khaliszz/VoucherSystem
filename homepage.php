@@ -73,6 +73,7 @@ $minPoints = $_GET['min_points'] ?? '';
 $maxPoints = $_GET['max_points'] ?? '';
 $hasPointsFilter = ($minPoints !== '' || $maxPoints !== '');
 
+// Run general filtering regardless of "All Vouchers" mode so point filters work immediately
 if ($hasSearch || $hasPointsFilter || $selectedCategoryId) {
     $sql = "SELECT voucher_id, title, image, points, description FROM voucher WHERE 1=1";
     $params = [];
@@ -119,8 +120,8 @@ if ($hasSearch || $hasPointsFilter || $selectedCategoryId) {
 }
 
 
-// ✅ Fetch promotions
-$promoSql = "SELECT promote_id, title, image, descriptions FROM promotion";
+// ✅ Fetch 3 random vouchers for promotion slider (with description)
+$promoSql = "SELECT voucher_id, title, image, description FROM voucher ORDER BY RAND() LIMIT 3";
 $promoStmt = $conn->prepare($promoSql);
 $promoStmt->execute();
 $promotions = $promoStmt->fetchAll(PDO::FETCH_ASSOC);
@@ -152,6 +153,9 @@ $cartCount = $cartRow['total'] ?? 0;
             --border-color: #e0e0e0;
             --background-color: #f4f7fc;
             --white-color: #ffffff;
+            /* Promo background settings */
+            --promo-background-color: #eef2ff; /* fallback color under image */
+            --promo-background: url('images/promo.jpg');
         }
 
         * {
@@ -189,8 +193,9 @@ $cartCount = $cartRow['total'] ?? 0;
 
         /* Promotion Slider */
         .promo-slider {
-            width: 1000px;
-            height: 250px;
+            width: 100%;
+            max-width: 1000px;
+            height: 300px;
             margin: 30px auto;
             position: relative;
             overflow: hidden;
@@ -211,14 +216,73 @@ $cartCount = $cartRow['total'] ?? 0;
             height: 100%;
             box-sizing: border-box;
             position: relative;
+            background-color: var(--promo-background-color);
+            background-image: var(--promo-background);
+            background-position: center center;
+            background-size: cover;
+            background-repeat: no-repeat;
         }
 
         .slide img {
             width: 100%;
             height: 100%;
-            object-fit: cover;
+            object-fit: contain;
             object-position: center center;
             border-radius: 12px;
+            padding: 8px 12px; /* letterboxing space so varied ratios look clean */
+        }
+
+        /* See more button overlay */
+        .see-more-btn {
+            position: absolute;
+            right: 16px;
+            bottom: 16px;
+            background: var(--button-gradient);
+            color: #ffffff;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 0.95rem;
+            font-weight: 600;
+            z-index: 9;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+            transition: all 0.25s ease;
+        }
+
+        .see-more-btn:hover {
+            background: var(--button-hover-gradient);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Slide caption (title + description) */
+        .slide-caption {
+            position: absolute;
+            left: 16px;
+            bottom: 16px;
+            right: 140px; /* leave space for button */
+            background: rgba(0, 0, 0, 0.45);
+            color: #fff;
+            padding: 12px 14px;
+            border-radius: 10px;
+            backdrop-filter: blur(2px);
+        }
+
+        .slide-caption .caption-title {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .slide-caption .caption-desc {
+            font-size: 0.9rem;
+            line-height: 1.3;
+            opacity: 0.95;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
         }
 
         /* Arrows */
@@ -255,21 +319,46 @@ $cartCount = $cartRow['total'] ?? 0;
         .voucher-grid {
             display: flex;
             flex-wrap: wrap;
-            justify-content: flex-start;
-            gap: 25px;
-            margin-top: 20px;
+            gap: 20px;
+            justify-content: flex-start; /* Align items to the left */
         }
 
-        .voucher-card {
-            background: var(--white-color);
-            border-radius: 16px;
-            padding: 20px;
+       .voucher-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 15px;
             text-align: center;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            width: calc(20% - 20px);
-            margin-bottom: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            transition: 0.3s ease;
+            flex: 0 0 calc(20% - 16px); /* Fixed width, no growing or shrinking */
+            width: calc(20% - 16px); /* Explicit width for consistency */
+            max-width: 280px; /* Maximum width to prevent cards from getting too large */
+            display: flex;
+            flex-direction: column;
+            min-height: 400px; /* Set minimum height for consistency */
         }
+
+        /* Make all titles consistent height */
+       .voucher-title {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            height: 52px; /* Fixed height for exactly 2 lines */
+            line-height: 1.3;
+            margin: 10px 0;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-color);
+            flex-shrink: 0; /* Prevent title from shrinking */
+        }
+
+        /* Push buttons to the bottom */
+        .button-container {
+            margin-top: auto;
+        }
+
 
         .voucher-card:hover {
             transform: translateY(-5px);
@@ -285,6 +374,7 @@ $cartCount = $cartRow['total'] ?? 0;
             border-radius: 12px;
             transition: transform 0.3s ease, box-shadow 0.3s ease;
             cursor: pointer;
+            flex-shrink: 0; /* Prevent image from shrinking */
         }
 
         .voucher-card img:hover {
@@ -292,18 +382,20 @@ $cartCount = $cartRow['total'] ?? 0;
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
         }
 
-        .voucher-card p {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: var(--text-color);
-            margin-bottom: 8px;
+        /* Content area that grows to fill available space */
+        .voucher-content {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            justify-content: space-between;
         }
 
         .voucher-card small {
             font-size: 0.9rem;
             color: var(--text-secondary-color);
             display: block;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
+            flex-shrink: 0; /* Prevent from shrinking */
         }
 
         /* Points display styling */
@@ -314,10 +406,11 @@ $cartCount = $cartRow['total'] ?? 0;
             background: linear-gradient(135deg, #f0f0ff 0%, #e6e6ff 100%);
             padding: 10px 20px;
             border-radius: 25px;
-            margin: 15px 0 20px 0;
+            margin: 15px 0;
             border: 2px solid #6a5af9;
             display: inline-block;
             min-width: 120px;
+            flex-shrink: 0; /* Prevent from shrinking */
         }
 
         .voucher-card a.btn {
@@ -325,7 +418,6 @@ $cartCount = $cartRow['total'] ?? 0;
             background: var(--button-gradient);
             border: none;
             padding: 12px 20px;
-            margin: 3px;
             border-radius: 8px;
             color: var(--white-color);
             cursor: pointer;
@@ -345,13 +437,18 @@ $cartCount = $cartRow['total'] ?? 0;
 
         /* Button container for better spacing */
         .button-container {
-            margin-top: 10px;
+            margin-top: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding-top: 15px;
         }
 
         /* Make image clickable to voucher details */
         .image-link {
             display: block;
             text-decoration: none;
+            flex-shrink: 0;
         }
 
         /* Results section styling */
@@ -429,23 +526,17 @@ $cartCount = $cartRow['total'] ?? 0;
         }
 
         /* Mobile Responsiveness */
-        @media (max-width: 768px) {
-            body {
-                padding-top: 200px;
-                /* More space on mobile */
-            }
-
-            .voucher-grid {
-                justify-content: center;
-            }
-
+        @media (max-width: 1400px) {
             .voucher-card {
-                width: calc(50% - 20px);
+
+                flex: 0 0 calc(25% - 15px); /* 4 per row on large screens */
+                width: calc(25% - 15px);
+
             }
 
             .promo-slider {
                 width: 90%;
-                height: 200px;
+                height: 220px;
                 margin: 20px auto;
             }
 
@@ -456,38 +547,42 @@ $cartCount = $cartRow['total'] ?? 0;
             main h1 {
                 font-size: 2rem;
             }
+        }
 
-            main h2 {
-                font-size: 1.5rem;
+        @media (max-width: 1200px) {
+            .voucher-card {
+                flex: 0 0 calc(33.33% - 14px); /* 3 per row on medium screens */
+                width: calc(33.33% - 14px);
             }
+        }
 
-            .results-header {
-                flex-direction: column;
-                align-items: flex-start;
+        @media (max-width: 768px) {
+            .voucher-card {
+                flex: 0 0 calc(50% - 10px); /* 2 per row on small screens */
+                width: calc(50% - 10px);
+                min-height: 350px; /* Adjust minimum height for mobile */
+                max-width: none; /* Remove max-width constraint on mobile */
             }
-
-            .filter-info {
-                margin-left: 0;
+            
+            .voucher-title {
+                height: 48px; /* Slightly smaller on mobile */
+                font-size: 1rem;
             }
-
-            .warning-message {
-                top: 180px;
-                width: 90%;
-                min-width: unset;
+            
+            .voucher-grid {
+                gap: 15px;
             }
         }
 
         @media (max-width: 500px) {
-            .voucher-grid {
-                justify-content: center;
-            }
-
             .voucher-card {
+                flex: 0 0 100%; /* 1 per row on very small screens */
                 width: 100%;
+                min-height: 320px;
             }
-
-            body {
-                padding-top: 220px;
+            
+            .voucher-grid {
+                gap: 10px;
             }
         }
 
@@ -546,6 +641,7 @@ $cartCount = $cartRow['total'] ?? 0;
             position: relative;
             display: inline-block;
             margin-bottom: 20px;
+            margin-right: 10px;
         }
 
         .filter-dropbtn {
@@ -601,6 +697,121 @@ $cartCount = $cartRow['total'] ?? 0;
 
         .points-range-filter.active .filter-dropdown-content {
             display: block;
+        }
+
+        /* Category Dropdown Styles (for inline use) */
+        .inline-category-dropdown {
+            position: relative;
+            display: inline-block;
+            margin-bottom: 20px;
+            margin-right: 10px;
+        }
+
+        .inline-category-dropbtn {
+            background-color: var(--white-color);
+            color: var(--text-color);
+            padding: 10px 16px;
+            font-size: 1rem;
+            border: 2px solid var(--border-color);
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .inline-category-dropbtn:hover {
+            border-color: #6a5af9;
+            color: #6a5af9;
+        }
+
+        .inline-category-dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: var(--white-color);
+            min-width: 180px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            z-index: 1;
+            margin-top: 5px;
+            overflow: hidden;
+        }
+
+        .inline-category-dropdown-content a {
+            color: var(--text-color);
+            padding: 10px 14px;
+            text-decoration: none;
+            display: block;
+            transition: background 0.2s ease;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 0.95rem;
+        }
+
+        .inline-category-dropdown-content a:last-child {
+            border-bottom: none;
+        }
+
+        .inline-category-dropdown-content a:hover {
+            background-color: #f8f9fa;
+            color: #6a5af9;
+        }
+
+        .inline-category-dropdown.active .inline-category-dropdown-content {
+            display: block;
+        }
+
+        /* Search bar styles (for inline use) */
+        .inline-search-container {
+            display: inline-block;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .inline-search-form {
+            display: flex;
+            align-items: center;
+        }
+
+        .inline-search-input {
+            padding: 10px 10px;
+            border: 2px solid var(--border-color);
+            border-radius: 25px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+            padding-right: 45px;
+            width: 200px;
+        }
+
+        .inline-search-input:focus {
+            outline: none;
+            border-color: #6a5af9;
+        }
+
+        .inline-search-btn {
+            background: var(--button-gradient);
+            color: white;
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .inline-search-btn:hover {
+            background: var(--button-hover-gradient);
+            transform: translateY(-50%) scale(1.1);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
         }
 
         /* Popup Modal Styles */
@@ -977,6 +1188,11 @@ $cartCount = $cartRow['total'] ?? 0;
                     <div class="slide">
                         <img src="<?php echo htmlspecialchars($promo['image']); ?>"
                             alt="<?php echo htmlspecialchars($promo['title']); ?>">
+                        <div class="slide-caption">
+                            <div class="caption-title"><?php echo htmlspecialchars($promo['title']); ?></div>
+                            <div class="caption-desc"><?php echo htmlspecialchars($promo['description'] ?? ''); ?></div>
+                        </div>
+                        <a class="see-more-btn" href="voucher_details.php?id=<?php echo urlencode($promo['voucher_id']); ?>">Claim Now</a>
                     </div>
                 <?php endforeach; ?>
             </div>
@@ -1007,6 +1223,32 @@ $cartCount = $cartRow['total'] ?? 0;
                     </div>
                 </div>
 
+                <!-- Category Dropdown -->
+                <div class="inline-category-dropdown">
+                    <button class="inline-category-dropbtn">
+                        Category <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="inline-category-dropdown-content">
+                        <a href="homepage.php?show_all=1">All Vouchers</a>
+                        <a href="homepage.php">Top Picks</a>
+                        <a href="homepage.php?category=fashion">Fashion</a>
+                        <a href="homepage.php?category=food%20and%20beverage">Food and Beverage</a>
+                        <a href="homepage.php?category=travel">Travel</a>
+                        <a href="homepage.php?category=sports">Sports</a>
+                    </div>
+                </div>
+
+                <!-- Search Bar -->
+                <div class="inline-search-container">
+                    <form method="get" action="homepage.php" class="inline-search-form">
+                        <input type="text" name="search" class="inline-search-input" placeholder="Search vouchers..."
+                               value="<?php echo isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>">
+                        <button type="submit" class="inline-search-btn">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </form>
+                </div>
+
                 <div class="results-header">
                     <h2>Search Results for "<?php echo htmlspecialchars($_GET['search']); ?>"</h2>
                     <span class="results-count"><?php echo count($searchResults); ?> found</span>
@@ -1027,17 +1269,30 @@ $cartCount = $cartRow['total'] ?? 0;
                                     <img src="<?php echo htmlspecialchars($voucher['image']); ?>"
                                         alt="<?php echo htmlspecialchars($voucher['title']); ?>">
                                 </a>
-                                <p><?php echo htmlspecialchars($voucher['title']); ?></p>
-                                <div class="points-display">
-                                    <?php echo htmlspecialchars($voucher['points']); ?> Points
-                                </div>
-                                <div class="button-container">
-                                    <a href="process_redeem.php?id=<?php echo $voucher['voucher_id']; ?>" class="btn redeem-btn"
+                                
+                                <div class="voucher-content">
+                                    <!-- Title with consistent height (clamped to 2 lines) -->
+                                    <p class="voucher-title">
+                                        <?php echo htmlspecialchars($voucher['title']); ?>
+                                    </p>
+                                    
+                                    <div class="points-display">
+                                        <?php echo htmlspecialchars($voucher['points']); ?> Points
+                                    </div>
+                                    
+                                    <?php if (isset($voucher['total_quantity'])): ?>
+                                        <small>Total Redeemed: <?php echo $voucher['total_quantity']; ?></small>
+                                    <?php endif; ?>
+                                    
+                                    <div class="button-container">
+                                        <a href="process_redeem.php?id=<?php echo $voucher['voucher_id']; ?>" 
+                                        class="btn redeem-btn"
                                         data-points="<?php echo $voucher['points']; ?>"
                                         data-title="<?php echo htmlspecialchars($voucher['title']); ?>">
-                                        REDEEM NOW
-                                    </a>
-                                    <a href="cart.php?action=add&id=<?= $voucher['voucher_id']; ?>" class="btn">ADD TO CART</a>
+                                            REDEEM NOW
+                                        </a>
+                                        <a href="cart.php?action=add&id=<?= $voucher['voucher_id']; ?>" class="btn">ADD TO CART</a>
+                                    </div>
                                 </div>
                             </div>
                         <?php endforeach; ?>
@@ -1066,6 +1321,34 @@ $cartCount = $cartRow['total'] ?? 0;
                     </div>
                 </div>
 
+                <!-- Category Dropdown -->
+                <div class="inline-category-dropdown">
+                    <button class="inline-category-dropbtn">
+                        Category <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="inline-category-dropdown-content">
+                        <a href="homepage.php?show_all=1">All Vouchers</a>
+                        <a href="homepage.php">Top Picks</a>
+                        <a href="homepage.php?category=fashion">Fashion</a>
+                        <a href="homepage.php?category=food%20and%20beverage">Food and Beverage</a>
+                        <a href="homepage.php?category=travel">Travel</a>
+                        <a href="homepage.php?category=sports">Sports</a>
+                    </div>
+                </div>
+
+                <!-- Search Bar -->
+                <div class="inline-search-container">
+                    <form method="get" action="homepage.php" class="inline-search-form">
+                        <input type="hidden" name="min_points" value="<?php echo isset($_GET['min_points']) ? htmlspecialchars($_GET['min_points']) : ''; ?>">
+                        <input type="hidden" name="max_points" value="<?php echo isset($_GET['max_points']) ? htmlspecialchars($_GET['max_points']) : ''; ?>">
+                        <input type="text" name="search" class="inline-search-input" placeholder="Search vouchers..."
+                               value="<?php echo isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>">
+                        <button type="submit" class="inline-search-btn">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </form>
+                </div>
+
                 <div class="results-header">
                     <h2>Filtered by Points</h2>
                     <span class="results-count"><?php echo count($pointsResults); ?> found</span>
@@ -1084,15 +1367,31 @@ $cartCount = $cartRow['total'] ?? 0;
                                     <img src="<?php echo htmlspecialchars($voucher['image']); ?>"
                                         alt="<?php echo htmlspecialchars($voucher['title']); ?>">
                                 </a>
-                                <p><?php echo htmlspecialchars($voucher['title']); ?></p>
-                                <div class="points-display">
-                                    <?php echo htmlspecialchars($voucher['points']); ?> Points
+                                
+                                <div class="voucher-content">
+                                    <!-- Title with consistent height (clamped to 2 lines) -->
+                                    <p class="voucher-title">
+                                        <?php echo htmlspecialchars($voucher['title']); ?>
+                                    </p>
+                                    
+                                    <div class="points-display">
+                                        <?php echo htmlspecialchars($voucher['points']); ?> Points
+                                    </div>
+                                    
+                                    <?php if (isset($voucher['total_quantity'])): ?>
+                                        <small>Total Redeemed: <?php echo $voucher['total_quantity']; ?></small>
+                                    <?php endif; ?>
+                                    
+                                    <div class="button-container">
+                                        <a href="process_redeem.php?id=<?php echo $voucher['voucher_id']; ?>" 
+                                        class="btn redeem-btn"
+                                        data-points="<?php echo $voucher['points']; ?>"
+                                        data-title="<?php echo htmlspecialchars($voucher['title']); ?>">
+                                            REDEEM NOW
+                                        </a>
+                                        <a href="cart.php?action=add&id=<?= $voucher['voucher_id']; ?>" class="btn">ADD TO CART</a>
+                                    </div>
                                 </div>
-                                <a href="process_redeem.php?id=<?php echo $voucher['voucher_id']; ?>" class="btn redeem-btn"
-                                    data-points="<?php echo $voucher['points']; ?>"
-                                    data-title="<?php echo htmlspecialchars($voucher['title']); ?>">
-                                    REDEEM NOW
-                                </a>
                             </div>
                         <?php endforeach; ?>
                     <?php else: ?>
@@ -1107,11 +1406,58 @@ $cartCount = $cartRow['total'] ?? 0;
 
 
         <!-- All Vouchers Section -->
-        <?php if ($showAll): ?>
+        <?php if ($showAll && !$hasPointsFilter && !$hasSearch): ?>
             <div class="results-section">
+                <!-- Points Range Filter Dropdown -->
+                <div class="points-range-filter">
+                    <button class="filter-dropbtn">
+                        Filter by Points <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="filter-dropdown-content">
+                        <a href="homepage.php?show_all=1&min_points=&max_points=1000">Less than 1000 points</a>
+                        <a href="homepage.php?show_all=1&min_points=1000&max_points=4000">1000 - 4000 points</a>
+                        <a href="homepage.php?show_all=1&min_points=4000&max_points=">More than 4000 points</a>
+                    </div>
+                </div>
+
+                <!-- Category Dropdown -->
+                <div class="inline-category-dropdown">
+                    <button class="inline-category-dropbtn">
+                        Category <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="inline-category-dropdown-content">
+                        <a href="homepage.php?show_all=1">All Vouchers</a>
+                        <a href="homepage.php">Top Picks</a>
+                        <a href="homepage.php?category=fashion">Fashion</a>
+                        <a href="homepage.php?category=food%20and%20beverage">Food and Beverage</a>
+                        <a href="homepage.php?category=travel">Travel</a>
+                        <a href="homepage.php?category=sports">Sports</a>
+                    </div>
+                </div>
+
+                <!-- Search Bar -->
+                <div class="inline-search-container">
+                    <form method="get" action="homepage.php" class="inline-search-form">
+                        <input type="hidden" name="show_all" value="1">
+                        <input type="text" name="search" class="inline-search-input" placeholder="Search vouchers..."
+                               value="<?php echo isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>">
+                        <button type="submit" class="inline-search-btn">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </form>
+                </div>
+
                 <div class="results-header">
                     <h2>All Vouchers</h2>
                     <span class="results-count"><?php echo count($allResults); ?> found</span>
+                    <?php if ($hasPointsFilter): ?>
+                        <div class="filter-info">
+                            • Points:
+                            <?php echo isset($_GET['min_points']) && $_GET['min_points'] !== '' ? $_GET['min_points'] : '0'; ?> 
+                            -
+                            <?php echo isset($_GET['max_points']) && $_GET['max_points'] !== '' ? $_GET['max_points'] : '∞'; ?>
+                        </div>
+                    <?php endif; ?>
                 </div>
                 <div class="voucher-grid">
                     <?php if (!empty($allResults)): ?>
@@ -1121,17 +1467,30 @@ $cartCount = $cartRow['total'] ?? 0;
                                     <img src="<?php echo htmlspecialchars($voucher['image']); ?>"
                                         alt="<?php echo htmlspecialchars($voucher['title']); ?>">
                                 </a>
-                                <p><?php echo htmlspecialchars($voucher['title']); ?></p>
-                                <div class="points-display">
-                                    <?php echo htmlspecialchars($voucher['points']); ?> Points
-                                </div>
-                                <div class="button-container">
-                                    <a href="process_redeem.php?id=<?php echo $voucher['voucher_id']; ?>" class="btn redeem-btn"
+                                
+                                <div class="voucher-content">
+                                    <!-- Title with consistent height (clamped to 2 lines) -->
+                                    <p class="voucher-title">
+                                        <?php echo htmlspecialchars($voucher['title']); ?>
+                                    </p>
+                                    
+                                    <div class="points-display">
+                                        <?php echo htmlspecialchars($voucher['points']); ?> Points
+                                    </div>
+                                    
+                                    <?php if (isset($voucher['total_quantity'])): ?>
+                                        <small>Total Redeemed: <?php echo $voucher['total_quantity']; ?></small>
+                                    <?php endif; ?>
+                                    
+                                    <div class="button-container">
+                                        <a href="process_redeem.php?id=<?php echo $voucher['voucher_id']; ?>" 
+                                        class="btn redeem-btn"
                                         data-points="<?php echo $voucher['points']; ?>"
                                         data-title="<?php echo htmlspecialchars($voucher['title']); ?>">
-                                        REDEEM NOW
-                                    </a>
-                                    <a href="cart.php?action=add&id=<?= $voucher['voucher_id']; ?>" class="btn">ADD TO CART</a>
+                                            REDEEM NOW
+                                        </a>
+                                        <a href="cart.php?action=add&id=<?= $voucher['voucher_id']; ?>" class="btn">ADD TO CART</a>
+                                    </div>
                                 </div>
                             </div>
                         <?php endforeach; ?>
@@ -1166,6 +1525,33 @@ $cartCount = $cartRow['total'] ?? 0;
                     </div>
                 </div>
 
+                <!-- Category Dropdown -->
+                <div class="inline-category-dropdown">
+                    <button class="inline-category-dropbtn">
+                        Category <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="inline-category-dropdown-content">
+                        <a href="homepage.php?show_all=1">All Vouchers</a>
+                        <a href="homepage.php">Top Picks</a>
+                        <a href="homepage.php?category=fashion">Fashion</a>
+                        <a href="homepage.php?category=food%20and%20beverage">Food and Beverage</a>
+                        <a href="homepage.php?category=travel">Travel</a>
+                        <a href="homepage.php?category=sports">Sports</a>
+                    </div>
+                </div>
+
+                <!-- Search Bar -->
+                <div class="inline-search-container">
+                    <form method="get" action="homepage.php" class="inline-search-form">
+                        <input type="hidden" name="category" value="<?php echo isset($_GET['category']) ? htmlspecialchars($_GET['category']) : ''; ?>">
+                        <input type="text" name="search" class="inline-search-input" placeholder="Search vouchers..."
+                               value="<?php echo isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>">
+                        <button type="submit" class="inline-search-btn">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </form>
+                </div>
+
                 <div class="results-header">
                     <h2><?php echo ucfirst($_GET['category']); ?> Vouchers</h2>
                     <span class="results-count"><?php echo count($categoryResults); ?> found</span>
@@ -1191,17 +1577,30 @@ $cartCount = $cartRow['total'] ?? 0;
                                     <img src="<?php echo htmlspecialchars($voucher['image']); ?>"
                                         alt="<?php echo htmlspecialchars($voucher['title']); ?>">
                                 </a>
-                                <p><?php echo htmlspecialchars($voucher['title']); ?></p>
-                                <div class="points-display">
-                                    <?php echo htmlspecialchars($voucher['points']); ?> Points
-                                </div>
-                                <div class="button-container">
-                                    <a href="process_redeem.php?id=<?php echo $voucher['voucher_id']; ?>" class="btn redeem-btn"
+                                
+                                <div class="voucher-content">
+                                    <!-- Title with consistent height (clamped to 2 lines) -->
+                                    <p class="voucher-title">
+                                        <?php echo htmlspecialchars($voucher['title']); ?>
+                                    </p>
+                                    
+                                    <div class="points-display">
+                                        <?php echo htmlspecialchars($voucher['points']); ?> Points
+                                    </div>
+                                    
+                                    <?php if (isset($voucher['total_quantity'])): ?>
+                                        <small>Total Redeemed: <?php echo $voucher['total_quantity']; ?></small>
+                                    <?php endif; ?>
+                                    
+                                    <div class="button-container">
+                                        <a href="process_redeem.php?id=<?php echo $voucher['voucher_id']; ?>" 
+                                        class="btn redeem-btn"
                                         data-points="<?php echo $voucher['points']; ?>"
                                         data-title="<?php echo htmlspecialchars($voucher['title']); ?>">
-                                        REDEEM NOW
-                                    </a>
-                                    <a href="cart.php?action=add&id=<?= $voucher['voucher_id']; ?>" class="btn">ADD TO CART</a>
+                                            REDEEM NOW
+                                        </a>
+                                        <a href="cart.php?action=add&id=<?= $voucher['voucher_id']; ?>" class="btn">ADD TO CART</a>
+                                    </div>
                                 </div>
                             </div>
                         <?php endforeach; ?>
@@ -1215,8 +1614,8 @@ $cartCount = $cartRow['total'] ?? 0;
             </div>
         <?php endif; ?>
 
-        <!-- Top Pick Voucher Section (shown when no filters are active) -->
-        <?php if (!$hasSearch && !$hasPointsFilter && !$selectedCategoryId): ?>
+        
+        <?php if (!$hasSearch && !$hasPointsFilter && !$selectedCategoryId && !$showAll): ?>
             <div class="results-section">
                 <!-- Points Range Filter Dropdown -->
                 <div class="points-range-filter">
@@ -1224,12 +1623,37 @@ $cartCount = $cartRow['total'] ?? 0;
                         Filter by Points <i class="fas fa-chevron-down"></i>
                     </button>
                     <div class="filter-dropdown-content">
-                        <a href="homepage.php?show_all=1">All Vouchers</a>
                         <a href="homepage.php?min_points=&max_points=1000">
                             < 1000 points</a>
                                 <a href="homepage.php?min_points=1000&max_points=4000">1000 - 4000 points</a>
                                 <a href="homepage.php?min_points=4000&max_points=">> 4000 points</a>
                     </div>
+                </div>
+
+                <!-- Category Dropdown -->
+                <div class="inline-category-dropdown">
+                    <button class="inline-category-dropbtn">
+                        Category <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="inline-category-dropdown-content">
+                        <a href="homepage.php?show_all=1">All Vouchers</a>
+                        <a href="homepage.php">Top Picks</a>
+                        <a href="homepage.php?category=fashion">Fashion</a>
+                        <a href="homepage.php?category=food%20and%20beverage">Food and Beverage</a>
+                        <a href="homepage.php?category=travel">Travel</a>
+                        <a href="homepage.php?category=sports">Sports</a>
+                    </div>
+                </div>
+
+                <!-- Search Bar -->
+                <div class="inline-search-container">
+                    <form method="get" action="homepage.php" class="inline-search-form">
+                        <input type="text" name="search" class="inline-search-input" placeholder="Search vouchers..."
+                               value="<?php echo isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>">
+                        <button type="submit" class="inline-search-btn">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </form>
                 </div>
 
                 <div class="results-header">
@@ -1244,18 +1668,30 @@ $cartCount = $cartRow['total'] ?? 0;
                                     <img src="<?php echo htmlspecialchars($voucher['image']); ?>"
                                         alt="<?php echo htmlspecialchars($voucher['title']); ?>">
                                 </a>
-                                <p><?php echo htmlspecialchars($voucher['title']); ?></p>
-                                <div class="points-display">
-                                    <?php echo htmlspecialchars($voucher['points']); ?> Points
-                                </div>
-                                <small>Total Redeemed: <?php echo $voucher['total_quantity']; ?></small>
-                                <div class="button-container">
-                                    <a href="process_redeem.php?id=<?php echo $voucher['voucher_id']; ?>" class="btn redeem-btn"
+                                
+                                <div class="voucher-content">
+                                    <!-- Title with consistent height (clamped to 2 lines) -->
+                                    <p class="voucher-title">
+                                        <?php echo htmlspecialchars($voucher['title']); ?>
+                                    </p>
+                                    
+                                    <div class="points-display">
+                                        <?php echo htmlspecialchars($voucher['points']); ?> Points
+                                    </div>
+                                    
+                                    <?php if (isset($voucher['total_quantity'])): ?>
+                                        <small>Total Redeemed: <?php echo $voucher['total_quantity']; ?></small>
+                                    <?php endif; ?>
+                                    
+                                    <div class="button-container">
+                                        <a href="process_redeem.php?id=<?php echo $voucher['voucher_id']; ?>" 
+                                        class="btn redeem-btn"
                                         data-points="<?php echo $voucher['points']; ?>"
                                         data-title="<?php echo htmlspecialchars($voucher['title']); ?>">
-                                        REDEEM NOW
-                                    </a>
-                                    <a href="cart.php?action=add&id=<?= $voucher['voucher_id']; ?>" class="btn">ADD TO CART</a>
+                                            REDEEM NOW
+                                        </a>
+                                        <a href="cart.php?action=add&id=<?= $voucher['voucher_id']; ?>" class="btn">ADD TO CART</a>
+                                    </div>
                                 </div>
                             </div>
                         <?php endforeach; ?>
@@ -1449,6 +1885,38 @@ $cartCount = $cartRow['total'] ?? 0;
                     successMessage.style.display = 'none';
                 }, 5000);
             }
+        });
+
+        // Inline Category Dropdown functionality
+        const inlineCategoryDropdowns = document.querySelectorAll('.inline-category-dropdown');
+        inlineCategoryDropdowns.forEach(dropdown => {
+            const dropbtn = dropdown.querySelector('.inline-category-dropbtn');
+
+            if (dropbtn) {
+                dropbtn.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    dropdown.classList.toggle('active');
+                });
+
+                // Close dropdown when clicking outside
+                document.addEventListener('click', function (e) {
+                    if (!dropdown.contains(e.target)) {
+                        dropdown.classList.remove('active');
+                    }
+                });
+            }
+        });
+
+        // Inline Search Bar functionality
+        const inlineSearchForms = document.querySelectorAll('.inline-search-form');
+        inlineSearchForms.forEach(form => {
+            // Add event listener to prevent form submission if empty
+            form.addEventListener('submit', function(e) {
+                const searchInput = form.querySelector('.inline-search-input');
+                if (searchInput && searchInput.value.trim() === '') {
+                    e.preventDefault();
+                }
+            });
         });
     </script>
     <?php include 'footer.php'; ?>

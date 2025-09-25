@@ -1,0 +1,54 @@
+<!-- Top Pick Voucher Section (shown when no filters are active) -->
+        <?php if (!$hasSearch && !$hasPointsFilter && !$selectedCategoryId && !$showAll): ?>
+            <div class="results-section">
+                <!-- Points Range Filter Dropdown -->
+                <div class="points-range-filter">
+                    <button class="filter-dropbtn">
+                        Filter by Points <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="filter-dropdown-content">
+                        <a href="homepage.php?show_all=1">All Vouchers</a>
+                        <a href="homepage.php?min_points=&max_points=1000">
+                            < 1000 points</a>
+                        <a href="homepage.php?min_points=1000&max_points=4000">1000 - 4000 points</a>
+                        <a href="homepage.php?min_points=4000&max_points=">> 4000 points</a>
+                    </div>
+                </div>
+
+                <div class="results-header">
+                    <h2>Top Pick Vouchers</h2>
+                    <span class="results-count"><?php echo count($topVouchers); ?> vouchers</span>
+                </div>
+                <div class="voucher-grid">
+                    <?php if (!empty($topVouchers)): ?>
+                        <?php foreach ($topVouchers as $voucher): ?>
+                            <div class="voucher-card">
+                                <a href="voucher_details.php?id=<?php echo $voucher['voucher_id']; ?>" class="image-link">
+                                    <img src="<?php echo htmlspecialchars($voucher['image']); ?>"
+                                        alt="<?php echo htmlspecialchars($voucher['title']); ?>">
+                                </a>
+                                <p><?php echo htmlspecialchars($voucher['title']); ?></p>
+                                <div class="points-display">
+                                    <?php echo htmlspecialchars($voucher['points']); ?> Points
+                                </div>
+                                <small>Total Redeemed: <?php echo $voucher['total_quantity']; ?></small>
+                                <div class="button-container">
+                                    <a href="process_redeem.php?id=<?php echo $voucher['voucher_id']; ?>" class="btn redeem-btn"
+                                        data-points="<?php echo $voucher['points']; ?>"
+                                        data-title="<?php echo htmlspecialchars($voucher['title']); ?>">
+                                        REDEEM NOW
+                                    </a>
+                                    <a href="cart.php?action=add&id=<?= $voucher['voucher_id']; ?>" class="btn">ADD TO CART</a>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <div class="empty-state">
+                            <h3>Welcome to Our Voucher Store!</h3>
+                            <p>No vouchers available at the moment. Check back later for exciting offers!</p>
+                            <a href="homepage.php" class="btn">Refresh Page</a>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+        <?php endif; ?>
