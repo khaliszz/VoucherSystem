@@ -513,74 +513,420 @@ if (!$voucher) {
             transform: translateY(-2px);
         }
 
-        /* Mobile Responsiveness */
-        @media (max-width: 768px) {
-            header {
-                padding: 12px 20px;
-            }
+/* Enhanced Mobile Responsiveness - Replace existing media queries */
 
-            nav {
-                gap: 20px;
-            }
+/* Enhanced Mobile Responsiveness - Replace existing media queries */
 
-            nav a {
-                font-size: 0.9rem;
-            }
+/* Tablet and smaller desktop */
+@media (max-width: 1024px) {
+    .voucher-container {
+        gap: 30px;
+        padding: 30px;
+    }
+    
+    .voucher-left img {
+        width: 300px;
+        height: 220px;
+    }
+}
 
-            main {
-                padding: 20px;
-            }
+/* Tablet */
+@media (max-width: 768px) {
+    header {
+        padding: 12px 20px;
+    }
 
-            .page-header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 15px;
-            }
+    nav {
+        gap: 20px;
+    }
 
-            .page-header h1 {
-                font-size: 2rem;
-            }
+    nav a {
+        font-size: 0.9rem;
+    }
 
-            .voucher-container {
-                flex-direction: column;
-                padding: 25px;
-                gap: 25px;
-            }
+    main {
+        padding: 20px 15px;
+    }
 
-            .voucher-left img {
-                width: 100%;
-                max-width: 350px;
-            }
+    .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+        margin-bottom: 20px;
+    }
 
-            .voucher-actions {
-                justify-content: center;
-            }
+    .page-header h1 {
+        font-size: 2rem;
+    }
 
-            .action-button {
-                min-width: 120px;
-            }
+    .voucher-container {
+        flex-direction: column;
+        padding: 25px 20px;
+        gap: 25px;
+    }
 
-            .warning-message {
-                top: 120px;
-                width: 90%;
-                min-width: unset;
-            }
-        }
+    .voucher-left {
+        display: flex;
+        justify-content: center;
+    }
 
-        @media (max-width: 480px) {
-            .voucher-actions {
-                flex-direction: column;
-                align-items: stretch;
-            }
+    .voucher-left img {
+        width: 100%;
+        max-width: 400px;
+        height: auto;
+    }
 
-            .quantity-selector {
-                align-self: center;
-            }
+    .voucher-right h2 {
+        font-size: 1.6rem;
+        text-align: center;
+        margin-bottom: 15px;
+    }
 
-            .action-button {
-                width: 100%;
-            }
-        }
+    .points-display {
+        text-align: center;
+        font-size: 1.3rem;
+        margin-bottom: 20px;
+    }
+
+    /* Better button layout for tablets */
+    .voucher-actions {
+        justify-content: center;
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+
+    .quantity-selector {
+        flex-basis: 100%;
+        display: flex;
+        justify-content: center;
+        margin-bottom: 10px;
+        max-width: 140px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .quantity-button {
+        padding: 12px 10px;
+        min-width: 35px;
+        font-size: 1.1rem;
+    }
+
+    .quantity-input {
+        width: 45px;
+        padding: 12px 8px;
+        font-size: 1.1rem;
+    }
+
+    .action-button {
+        flex: 1;
+        max-width: 160px;
+        padding: 12px 18px;
+        font-size: 0.95rem;
+    }
+
+    .warning-message {
+        top: 100px;
+        width: 90%;
+        min-width: unset;
+        left: 5%;
+        transform: none;
+        font-size: 0.9rem;
+    }
+
+    .popup-modal {
+        width: 85%;
+        padding: 25px;
+    }
+
+    .terms-section {
+        margin-top: 25px;
+    }
+
+    .terms-textarea {
+        min-height: 100px;
+        font-size: 0.9rem;
+    }
+}
+
+/* Mobile - Large (iPhone Plus, etc.) */
+@media (max-width: 480px) {
+    body {
+        padding-top: 80px;
+    }
+
+    header {
+        padding: 10px 15px;
+    }
+
+    nav {
+        gap: 15px;
+    }
+
+    nav a {
+        font-size: 0.85rem;
+    }
+
+    main {
+        padding: 15px 10px;
+    }
+
+    .page-header h1 {
+        font-size: 1.75rem;
+    }
+
+    .back-btn {
+        padding: 8px 16px;
+        font-size: 0.9rem;
+    }
+
+    .voucher-container {
+        padding: 20px 15px;
+        gap: 20px;
+        border-radius: 12px;
+    }
+
+    .voucher-right h2 {
+        font-size: 1.4rem;
+        line-height: 1.3;
+    }
+
+    .points-display {
+        font-size: 1.2rem;
+        margin-bottom: 25px;
+    }
+
+    /* Enhanced mobile button spacing and sizing */
+    .voucher-actions {
+        gap: 15px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .quantity-selector {
+        flex-basis: 100%;
+        display: flex;
+        justify-content: center;
+        margin-bottom: 15px;
+        max-width: 130px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .quantity-button {
+        padding: 14px 12px;
+        min-width: 38px;
+        font-size: 1.2rem;
+    }
+
+    .quantity-input {
+        width: 48px;
+        padding: 14px 8px;
+        font-size: 1.2rem;
+    }
+
+    .action-button {
+        flex: 1;
+        max-width: 140px;
+        padding: 14px 16px;
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+
+    .terms-section {
+        margin-top: 30px;
+    }
+
+    .terms-section h3 {
+        font-size: 1.1rem;
+    }
+
+    .terms-textarea {
+        padding: 12px;
+        min-height: 90px;
+        font-size: 0.85rem;
+    }
+
+    .warning-message {
+        top: 90px;
+        width: 95%;
+        left: 2.5%;
+        padding: 10px 15px;
+        font-size: 0.85rem;
+    }
+
+    .popup-modal {
+        width: 95%;
+        padding: 20px 15px;
+        margin: 10px;
+    }
+
+    .popup-title {
+        font-size: 1.5rem;
+    }
+
+    .popup-description {
+        font-size: 1rem;
+    }
+
+    .popup-buttons {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .popup-btn {
+        width: 100%;
+        padding: 14px 20px;
+    }
+}
+
+/* Mobile - Small (iPhone SE, etc.) */
+@media (max-width: 375px) {
+    .page-header h1 {
+        font-size: 1.5rem;
+    }
+
+    .voucher-container {
+        padding: 15px 12px;
+    }
+
+    .voucher-right h2 {
+        font-size: 1.3rem;
+    }
+
+    .points-display {
+        font-size: 1.1rem;
+    }
+
+    /* Even more spacing for very small screens */
+    .voucher-actions {
+        gap: 12px;
+        justify-content: center;
+    }
+
+    .quantity-selector {
+        flex-basis: 100%;
+        display: flex;
+        justify-content: center;
+        margin-bottom: 12px;
+        max-width: 120px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .action-button {
+        flex: 1;
+        max-width: 130px;
+        padding: 12px 14px;
+        font-size: 0.85rem;
+    }
+
+    .quantity-button {
+        padding: 16px 14px;
+        min-width: 36px;
+    }
+
+    .quantity-input {
+        width: 45px;
+        padding: 16px 8px;
+    }
+
+    .warning-message {
+        font-size: 0.8rem;
+        padding: 8px 12px;
+    }
+
+    .popup-modal {
+        padding: 18px 12px;
+    }
+
+    .popup-title {
+        font-size: 1.3rem;
+    }
+
+    .popup-description {
+        font-size: 0.95rem;
+    }
+}
+
+/* Landscape mobile optimization */
+@media (max-width: 768px) and (orientation: landscape) {
+    body {
+        padding-top: 70px;
+    }
+
+    .voucher-container {
+        flex-direction: row;
+        align-items: flex-start;
+    }
+
+    .voucher-left {
+        flex-shrink: 0;
+    }
+
+    .voucher-left img {
+        width: 250px;
+        height: 180px;
+    }
+
+    .voucher-actions {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 12px;
+        justify-content: center;
+    }
+
+    .quantity-selector {
+        flex-basis: 100%;
+        display: flex;
+        justify-content: center;
+        margin-bottom: 8px;
+        max-width: 130px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .action-button {
+        flex: 1;
+        max-width: 120px;
+        min-width: 110px;
+    }
+}
+
+/* Ensure touch targets meet accessibility guidelines (44px minimum) */
+@media (max-width: 768px) {
+    .quantity-button,
+    .action-button,
+    .back-btn,
+    .popup-btn {
+        min-height: 44px;
+        min-width: 44px;
+    }
+
+    /* Improve button contrast for better accessibility */
+    .action-button:focus,
+    .quantity-button:focus {
+        outline: 3px solid #6a5af9;
+        outline-offset: 2px;
+    }
+}
+
+/* Fix for very wide but short screens */
+@media (max-width: 768px) and (max-height: 500px) {
+    .voucher-container {
+        flex-direction: row;
+        padding: 20px;
+    }
+
+    .voucher-left img {
+        width: 200px;
+        height: 150px;
+    }
+
+    .voucher-actions {
+        flex-direction: row;
+        gap: 10px;
+    }
+}
     </style>
 </head>
 <body>
