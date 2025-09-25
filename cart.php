@@ -29,11 +29,11 @@ if (isset($_GET['action']) && $_GET['action'] == 'add' && isset($_GET['id'])) {
     $stmt->execute([$userId, $voucherId]);
 
     if ($stmt->rowCount() > 0) {
-        $conn->prepare("UPDATE cart_items SET quantity = quantity + ? WHERE user_id=? AND voucher_id=?")
-            ->execute([$quantityToAdd, $userId, $voucherId]);
+        $conn->prepare("UPDATE cart_items SET quantity = quantity + 1 WHERE user_id=? AND voucher_id=?")
+            ->execute([$userId, $voucherId]);
     } else {
-        $conn->prepare("INSERT INTO cart_items (user_id, voucher_id, quantity) VALUES (?, ?, ?)")
-            ->execute([$userId, $voucherId, $quantityToAdd]);
+        $conn->prepare("INSERT INTO cart_items (user_id, voucher_id, quantity) VALUES (?, ?, 1)")
+            ->execute([$userId, $voucherId]);
     }
 
     if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
@@ -524,6 +524,7 @@ foreach ($cartItems as $item) {
             width: 130px;
             opacity: 0.6;
             margin-bottom: 20px;
+
         }
 
         /* Mobile Responsive Styles */
