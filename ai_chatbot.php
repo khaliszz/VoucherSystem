@@ -119,3 +119,5 @@ if ($reply === "") {
 
 // --- Return JSON ---
 echo json_encode(["reply" => nl2br($reply)]);
+
+//test
