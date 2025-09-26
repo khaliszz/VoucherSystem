@@ -527,6 +527,42 @@ foreach ($cartItems as $item) {
 
         }
 
+        /* Mobile Points Status Styles */
+        .mobile-points-status {
+            width: 100%;
+            font-size: 12px;
+            font-weight: bold;
+            padding: 8px 12px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .mobile-points-sufficient {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .mobile-points-insufficient {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .mobile-points-available {
+            background: #e2e3e5;
+            color: #383d41;
+            border: 1px solid #d6d8db;
+            font-size: 11px;
+            padding: 6px 10px;
+            margin-bottom: 8px;
+        }
+
         /* Mobile Responsive Styles */
         @media (max-width: 768px) {
             .header-container {
@@ -634,10 +670,15 @@ foreach ($cartItems as $item) {
 
             .mobile-checkout-content {
                 display: flex;
-                align-items: center;
-                justify-content: space-between;
+                flex-direction: column;
                 max-width: 1200px;
                 margin: 0 auto;
+            }
+
+            .mobile-checkout-bottom {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
             }
 
             .mobile-checkout-info {
@@ -747,6 +788,11 @@ foreach ($cartItems as $item) {
                 font-size: 13px;
                 min-width: 70px;
             }
+
+            .mobile-points-status {
+                font-size: 11px;
+                padding: 6px 10px;
+            }
         }
     </style>
 </head>
@@ -846,15 +892,25 @@ foreach ($cartItems as $item) {
         <?php if (!empty($cartItems)): ?>
             <div class="mobile-checkout-bar">
                 <div class="mobile-checkout-content">
-                    <div class="mobile-checkout-info">
-                        <div class="mobile-checkout-total" id="mobileTotalPoints">0 Points</div>
-                        <div class="mobile-checkout-items" id="mobileSelectedItems">0 items selected</div>
+                    <!-- Mobile Available Points Display -->
+                    <div class="mobile-points-available">
+                        <i class="fas fa-coins"></i> Available: <?= number_format($userPoints) ?> Points
                     </div>
-                    <form id="mobileCheckoutForm" action="checkout.php" method="post">
-                        <input type="hidden" name="items" id="mobileCheckoutItems">
-                        <button type="submit" class="mobile-checkout-btn" id="mobileCheckoutBtn"><i
-                                class="fas fa-credit-card"></i> Redeem</button>
-                    </form>
+                    
+                    <!-- Mobile Points Status Message -->
+                    <div id="mobilePointsStatus" class="mobile-points-status" style="display: none;"></div>
+                    
+                    <div class="mobile-checkout-bottom">
+                        <div class="mobile-checkout-info">
+                            <div class="mobile-checkout-total" id="mobileTotalPoints">0 Points</div>
+                            <div class="mobile-checkout-items" id="mobileSelectedItems">0 items selected</div>
+                        </div>
+                        <form id="mobileCheckoutForm" action="checkout.php" method="post">
+                            <input type="hidden" name="items" id="mobileCheckoutItems">
+                            <button type="submit" class="mobile-checkout-btn" id="mobileCheckoutBtn"><i
+                                    class="fas fa-credit-card"></i> Redeem</button>
+                        </form>
+                    </div>
                 </div>
             </div>
         <?php endif; ?>
@@ -869,6 +925,7 @@ foreach ($cartItems as $item) {
         const checkoutBtn = document.getElementById('checkoutBtn');
         const mobileCheckoutBtn = document.getElementById('mobileCheckoutBtn');
         const pointsStatus = document.getElementById('pointsStatus');
+        const mobilePointsStatus = document.getElementById('mobilePointsStatus');
         const userPoints = <?= $userPoints ?>;
 
         function updateTotal() {
@@ -877,32 +934,105 @@ foreach ($cartItems as $item) {
                 const item = cb.closest('.cart-item');
                 const points = parseInt(item.dataset.points);
                 const qty = parseInt(item.dataset.qty);
-                total += points * qty; selectedCount++;
+                total += points * qty; 
+                selectedCount++;
             });
+
+            // Update totals
             totalPointsEl.textContent = total.toLocaleString();
             mobileTotalPointsEl.textContent = total.toLocaleString() + " Points";
             mobileSelectedItemsEl.textContent = selectedCount + " item" + (selectedCount !== 1 ? "s" : "") + " selected";
+            
+            // Desktop points status
             if (selectedCount > 0) {
                 pointsStatus.style.display = 'block';
-                if (total <= userPoints) { pointsStatus.textContent = 'You have sufficient points!'; pointsStatus.className = 'points-status points-sufficient'; }
-                else { pointsStatus.textContent = `Not enough points! You need ${(total - userPoints).toLocaleString()} more.`; pointsStatus.className = 'points-status points-insufficient'; }
-            } else { pointsStatus.style.display = 'none'; }
+                if (total <= userPoints) { 
+                    pointsStatus.textContent = 'You have sufficient points!'; 
+                    pointsStatus.className = 'points-status points-sufficient'; 
+                } else { 
+                    pointsStatus.textContent = `Not enough points! You need ${(total - userPoints).toLocaleString()} more.`; 
+                    pointsStatus.className = 'points-status points-insufficient'; 
+                }
+            } else { 
+                pointsStatus.style.display = 'none'; 
+            }
+
+            // Mobile points status
+            if (selectedCount > 0) {
+                mobilePointsStatus.style.display = 'flex';
+                if (total <= userPoints) {
+                    mobilePointsStatus.innerHTML = '<i class="fas fa-check-circle"></i> You have sufficient points!';
+                    mobilePointsStatus.className = 'mobile-points-status mobile-points-sufficient';
+                } else {
+                    const shortfall = (total - userPoints).toLocaleString();
+                    mobilePointsStatus.innerHTML = `<i class="fas fa-exclamation-circle"></i> Not enough points! Need ${shortfall} more`;
+                    mobilePointsStatus.className = 'mobile-points-status mobile-points-insufficient';
+                }
+            } else {
+                mobilePointsStatus.style.display = 'none';
+            }
+
+            // Enable/disable checkout buttons
             const canCheckout = selectedCount > 0 && total <= userPoints;
             checkoutBtn.classList.toggle('disabled', !canCheckout);
             mobileCheckoutBtn.classList.toggle('disabled', !canCheckout);
+            checkoutBtn.disabled = !canCheckout;
+            mobileCheckoutBtn.disabled = !canCheckout;
         }
 
-        if (selectAll) { selectAll.addEventListener('change', function () { checkboxes.forEach(cb => cb.checked = this.checked); updateTotal(); }); }
-        checkboxes.forEach(cb => cb.addEventListener('change', updateTotal));
-        document.querySelectorAll('.qty-btn').forEach(btn => btn.addEventListener('click', function () { this.closest('.cart-item').querySelector('.select-item').checked = true; }));
-        [checkoutBtn, mobileCheckoutBtn].forEach(btn => btn && btn.addEventListener('click', function (e) {
-            let total = 0, selected = []; document.querySelectorAll('.select-item:checked').forEach(cb => {
-                const item = cb.closest('.cart-item'); total += parseInt(item.dataset.points) * parseInt(item.dataset.qty); selected.push(item.dataset.id);
-            });
-            if (selected.length === 0) { e.preventDefault(); alert('Please select at least one item'); return; }
-            if (total > userPoints) { e.preventDefault(); alert('Not enough points'); return; }
-            document.getElementById(this.id === 'checkoutBtn' ? 'checkoutItems' : 'mobileCheckoutItems').value = selected.join(',');
+        // Event listeners
+        if (selectAll) { 
+            selectAll.addEventListener('change', function () { 
+                checkboxes.forEach(cb => cb.checked = this.checked); 
+                updateTotal(); 
+            }); 
+        }
+
+        checkboxes.forEach(cb => cb.addEventListener('change', function() {
+            updateTotal();
+            
+            // Update select all checkbox state
+            if (selectAll) {
+                const checkedCount = document.querySelectorAll('.select-item:checked').length;
+                const totalCount = checkboxes.length;
+                selectAll.checked = checkedCount === totalCount;
+                selectAll.indeterminate = checkedCount > 0 && checkedCount < totalCount;
+            }
         }));
+
+        // Auto-select item when quantity is changed
+        document.querySelectorAll('.qty-btn').forEach(btn => 
+            btn.addEventListener('click', function () { 
+                this.closest('.cart-item').querySelector('.select-item').checked = true; 
+            })
+        );
+
+        // Checkout form submissions
+        [checkoutBtn, mobileCheckoutBtn].forEach(btn => btn && btn.addEventListener('click', function (e) {
+            let total = 0, selected = []; 
+            document.querySelectorAll('.select-item:checked').forEach(cb => {
+                const item = cb.closest('.cart-item'); 
+                total += parseInt(item.dataset.points) * parseInt(item.dataset.qty); 
+                selected.push(item.dataset.id);
+            });
+            
+            if (selected.length === 0) { 
+                e.preventDefault(); 
+                alert('Please select at least one item'); 
+                return; 
+            }
+            
+            if (total > userPoints) { 
+                e.preventDefault(); 
+                alert('Not enough points to complete this redemption'); 
+                return; 
+            }
+            
+            const targetForm = this.id === 'checkoutBtn' ? 'checkoutItems' : 'mobileCheckoutItems';
+            document.getElementById(targetForm).value = selected.join(',');
+        }));
+
+        // Initial update
         updateTotal();
     </script>
 </body>
