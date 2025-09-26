@@ -98,6 +98,7 @@ $expiryDate = $expiry['expiry_date'] ?? null;
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>Success Redeem</title>
     <style>
         body {
@@ -107,68 +108,85 @@ $expiryDate = $expiry['expiry_date'] ?? null;
             display:flex;
             align-items:center;
             justify-content:center;
-            height:100vh;
+            min-height:100vh;
+            padding:16px;
         }
         .modal {
             background:#fff;
-            padding:30px 25px;
+            padding:20px;
             border-radius:12px;
             text-align:center;
             max-width:420px;
-            width:90%;
+            width:100%;
             box-shadow:0 6px 25px rgba(0,0,0,0.25);
             position:relative;
+            max-height:90vh;
+            overflow:auto;
+            -webkit-overflow-scrolling: touch;
         }
         .close-btn {
             position:absolute;
-            top:12px;
-            right:15px;
+            top:8px;
+            right:10px;
             font-size:22px;
             font-weight:bold;
             cursor:pointer;
             color:#666;
             transition:0.2s;
+            padding:6px;
+            line-height:1;
         }
         .close-btn:hover {
             color:#e60000;
-            transform: scale(1.2);
+            transform: scale(1.1);
         }
         .success-icon {
-            width:70px;
-            height:70px;
+            width:64px;
+            height:64px;
             background:#28a745;
             border-radius:50%;
             display:flex;
             align-items:center;
             justify-content:center;
-            margin:0 auto 15px auto;
+            margin:0 auto 14px auto;
         }
         .success-icon i {
             color:#fff;
-            font-size:32px;
+            font-size:28px;
         }
         .modal h2 {
-            margin:10px 0 15px 0;
+            margin:10px 0 12px 0;
             color:#28a745;
-            font-size:1.4rem;
+            font-size:1.25rem;
         }
         .modal p {
             margin:6px 0;
             color:#333;
+            word-break: break-word;
         }
         .download-btn {
-            display:inline-block;
-            margin-top:15px;
-            padding:12px 22px;
+            display:block;
+            width:100%;
+            margin-top:16px;
+            padding:12px 18px;
             background:#6a11cb;
             color:#fff;
             text-decoration:none;
-            border-radius:6px;
+            border-radius:8px;
             font-weight:bold;
             transition:0.3s;
         }
         .download-btn:hover {
             background:#4a00e0;
+        }
+
+        @media (max-width: 480px) {
+            .modal { padding:16px; border-radius:12px; }
+            .success-icon { width:56px; height:56px; }
+            .success-icon i { font-size:24px; }
+            .modal h2 { font-size:1.1rem; }
+            .modal p { font-size:0.95rem; }
+            .download-btn { padding:12px; font-size:1rem; }
         }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -182,7 +200,18 @@ $expiryDate = $expiry['expiry_date'] ?? null;
         <h2>Voucher Redeemed Successfully</h2>
         <p>Remember to use this voucher by <strong><?= htmlspecialchars(date("d F Y", strtotime($expiryDate))) ?></strong>.</p>
         <p>Your new balance: <strong><?= htmlspecialchars($newPoints) ?> points</strong></p>
-        <a href="download_voucher.php?mode=recent" class="download-btn">Download Voucher</a>
+        <button type="button" class="download-btn" id="downloadVoucherBtn">Download Voucher</button>
     </div>
+    <script>
+        (function() {
+            var btn = document.getElementById('downloadVoucherBtn');
+            if (btn) {
+                btn.addEventListener('click', function() {
+                    // Use same-tab navigation to avoid pop-up/download blocking on mobile simulators
+                    window.location.href = 'download_voucher.php?mode=recent';
+                });
+            }
+        })();
+    </script>
 </body>
 </html>
